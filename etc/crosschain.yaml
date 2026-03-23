@@ -1,0 +1,111 @@
+Name: crosschain.rpc
+ListenOn: 0.0.0.0:8084
+
+# 当前服务请求超时时间是 100s
+Timeout: 100000
+
+# 环境：dev、test、pre、prod
+Mode: dev
+
+Log:
+  # 服务名称
+  ServiceName: cross-chain-service
+  # 日志输出到文件
+  Mode: file
+  # 日志输出文件路径
+  Path: logs
+  # 日志级别
+  Level: debug
+  # 是否压缩日志
+  Compress: true
+  # 日志保留天数，只有在文件模式才会生效
+  KeepDays: 7
+  # 按天切割日志
+  Rotation: daily
+
+# 基于 OpenTelemetry 的日志收集链路追踪
+Telemetry:
+  # 链路追踪开关，不配置默认是开启
+  Disabled: true
+  # 链路追踪服务名称，跟服务名称保持一致即可
+  Name: chain.rpc
+  # 链路追踪服务端地址
+  Endpoint: http://jaeger:14268/api/traces
+  # 采样率，不配置默认是 1.0
+  Sampler: 1.0
+  # 支持 jaeger|zipkin|otlpgrpc|otlphttp 这些链路追踪工具，不配置默认 jaeger
+  Batcher: jaeger
+
+# 监控，默认都是开启，主要调整端口和监控访问路由
+DevServer:
+  # 监控指标和健康检查的总开关，不配置是默认开启
+  Enable: true
+  # 监控指标和健康检查的端口
+  Port: 6061
+  # 健康检查路由，不配置是默认 /healthz
+  HealthPath: "/healthz"
+  # 健康检查返回，不配置默认是 OK
+  HealthResponse: "OK"
+  # 监控指标路由，不配置是默认 /metrics
+  MetricsPath: "/metrics"
+
+# grpc 通信服务端证书私钥
+GrpcConf:
+  #CaCertFile: ./cert/ca/ca.pem
+  #ServerCertFile: ./cert/chain-service/server.pem
+  #ServerKeyFile: ./cert/chain-service/server.key
+
+  CaCertFile: ""
+  ServerCertFile: ""
+  ServerKeyFile: ""
+  # 接收、发送消息大小设置为 20 mb，根据服务实际场景调整
+  MaxRecvMsgSize: 20971520
+  MaxSendMsgSize: 20971520
+
+SubscribeConf:
+  # redis 部署类型，单节点:node,集群:cluster,哨兵:sentinel
+  ConfType: node
+  # 集群方式下，多个 redis 地址用逗号分隔
+  RedisAddr: "192.168.1.171:6379"
+  RedisUserName: ""
+  RedisPassword: "123456"
+  # 哨兵模式的MasterName，其他模式可忽略
+  MasterName: ""
+  GroupName: "cross-chain-service"
+
+# 要访问的外部gRPC配置
+ExternalGrpcConfs:
+
+  # 链交互服务
+  chain-interactive-service:
+    #    ClientCertFile: ./cert/chain-interactive-service/client.pem
+    #    ClientKeyFile: ./cert/chain-interactive-service/client.key
+    #    CaCertFile: ./cert/ca/ca.pem
+    ClientCertFile:
+    ClientKeyFile:
+    CaCertFile:
+    DNS: localhost
+    Endpoint: 192.168.1.171:8085
+
+  # 监管服务
+  supervision-service:
+    ClientCertFile:
+    ClientKeyFile:
+    CaCertFile:
+    DNS: localhost
+    Endpoint: 192.168.1.171:8083
+
+  # 文件服务
+  file-service:
+    ClientCertFile:
+    ClientKeyFile:
+    CaCertFile:
+    DNS: localhost
+    Endpoint: 192.168.1.171:8082
+
+# 发送交易配置
+SendTxConf:
+  # 是否同步交易结果
+  WithSyncResult: false
+  # 发送交易超时时间,单位：s
+  TxTimeout: 60

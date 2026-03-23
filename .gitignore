@@ -1,0 +1,6 @@
+.idea
+.DS_Store
+logs
+cross-chain-service
+cover.out
+vendor

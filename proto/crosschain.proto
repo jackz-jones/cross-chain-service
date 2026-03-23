@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "./";
+
+service CrossChain {
+
+  // GetLatestSubscribeHeight 获取最新订阅高度
+  rpc GetLatestSubscribeHeight(GetLatestSubscribeHeightRequest) returns(GetLatestSubscribeHeightResponse) {};
+}
+
+message GetLatestSubscribeHeightRequest {
+  string requestId = 1; // 请求id，日志追踪
+  string chainName = 2; // 哪条链
+  string contractName = 3; // 哪个合约
+  string chainType = 4; // 链类型
+  string contractType = 5; // 合约类型
+}
+
+message SubscribeHeight {
+  uint64 height = 1; // 高度
+  string chainName = 2;
+  string contractName = 3;
+  string chainType = 4;
+  string contractType = 5;
+}
+
+message GetLatestSubscribeHeightResponse {
+  int32 code = 1; // 错误码
+  string msg = 2; // 错误信息
+  SubscribeHeight data = 3; // 结果
+}
