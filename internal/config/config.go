@@ -12,6 +12,12 @@ type Config struct {
 
 	// SendTxConf 交易发送配置
 	SendTxConf SendTxConf
+
+	// ReliabilityConf 可靠性配置（可选）
+	ReliabilityConf ReliabilityConf `json:",optional"`
+
+	// RouteConf 路由配置（可选，不配置则使用默认的全互联路由）
+	RouteConf []RouteRule `json:",optional"`
 }
 
 // GrpcConf contain all config items for grpc server initiation
@@ -72,4 +78,37 @@ type SendTxConf struct {
 
 	// TxTimeout 发送交易超时时间
 	TxTimeout int64
+}
+
+// ReliabilityConf 可靠性配置
+type ReliabilityConf struct {
+	// EnableIdempotency 是否启用幂等性检查
+	EnableIdempotency bool `json:",optional"`
+
+	// IdempotencyTTL 幂等性记录过期时间（秒），默认 86400（24小时）
+	IdempotencyTTL int64 `json:",optional"`
+
+	// EnableRetry 是否启用重试
+	EnableRetry bool `json:",optional"`
+
+	// MaxRetries 最大重试次数，默认 3
+	MaxRetries int `json:",optional"`
+
+	// RetryBaseDelay 重试基础延迟（毫秒），默认 1000
+	RetryBaseDelay int64 `json:",optional"`
+
+	// RetryMaxDelay 重试最大延迟（毫秒），默认 30000
+	RetryMaxDelay int64 `json:",optional"`
+
+	// RetryMultiplier 退避乘数，默认 2.0
+	RetryMultiplier float64 `json:",optional"`
+}
+
+// RouteRule 路由规则
+type RouteRule struct {
+	// SourceChain 源链名称
+	SourceChain string
+
+	// TargetChains 目标链名称列表
+	TargetChains []string
 }
