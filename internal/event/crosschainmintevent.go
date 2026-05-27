@@ -60,6 +60,12 @@ func (p *crossChainMintProcessor) ProcessParsedEvent(parsedEvent *adapter.Parsed
 	if parsedEvent.EventDataItems != nil {
 		return p.processChainmaker(parsedEvent, originalEvent)
 	}
+
+	// Solana 链：RawData 是纯 JSON 字符串，字段值为字符串类型
+	if strings.EqualFold(originalEvent.ChainType, "solana") {
+		return p.processSolana(parsedEvent, originalEvent)
+	}
+
 	return p.processEthereum(parsedEvent, originalEvent)
 }
 
@@ -78,6 +84,27 @@ func (p *crossChainMintProcessor) processEthereum(parsedEvent *adapter.ParsedEve
 	err = p.handlerCrossChain(originalEvent.ContractType, ccme.NFTInfo.ID, ccme.NFTInfo.NftOwner.String(),
 		ccme.NFTInfo.Holder.String(), ccme.NFTInfo.Sender.String(),
 		ethCommon.Hash(ccme.NFTInfo.TokenId).String(), int(nftTypes.CrossState_Success))
+	if err != nil {
+		h.logger.Errorf("[%s] %s: %v", h.eventName(), code.ErrMsgHandlerCrossChain, err)
+		return fmt.Errorf("%s: %v", code.ErrMsgHandlerCrossChain, err)
+	}
+
+	return nil
+}
+
+// processSolana 处理 Solana 链事件
+func (p *crossChainMintProcessor) processSolana(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+	h := p.handler
+
+	// 从 Fields 中提取字段
+	id := parsedEvent.GetString("id")
+	owner := parsedEvent.GetString("owner")
+	holder := parsedEvent.GetString("holder")
+	sender := parsedEvent.GetString("sender")
+	tokenId := parsedEvent.GetString("tokenId")
+
+	err := p.handlerCrossChain(originalEvent.ContractType, id, owner, holder, sender,
+		tokenId, int(nftTypes.CrossState_Success))
 	if err != nil {
 		h.logger.Errorf("[%s] %s: %v", h.eventName(), code.ErrMsgHandlerCrossChain, err)
 		return fmt.Errorf("%s: %v", code.ErrMsgHandlerCrossChain, err)

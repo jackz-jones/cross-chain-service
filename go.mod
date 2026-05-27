@@ -7,7 +7,7 @@ require (
 	chainmaker.org/chainmaker/pb-go/v2 v2.3.7
 	github.com/Rican7/retry v0.1.0
 	github.com/ethereum/go-ethereum v1.14.11
-	github.com/jackz-jones/blockchain-interactive-service v0.0.0-20260323081715-765544c2f044
+	github.com/jackz-jones/blockchain-interactive-service v0.0.0-20260506110709-27ee8ae1d49b
 	github.com/jackz-jones/common v0.0.0-20260323065044-b3ce2b57b723
 	github.com/jackz-jones/nft-contract-go v0.0.0-20260320101149-d512ac907c4d
 	github.com/jackz-jones/notification-contract-go v0.0.0-20260320104135-72b44e6064d8

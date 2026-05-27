@@ -67,6 +67,11 @@ func (p *enterpriseNotifiedProcessor) ProcessParsedEvent(parsedEvent *adapter.Pa
 		return p.processChainmaker(parsedEvent, originalEvent)
 	}
 
+	// Solana 链：RawData 是纯 JSON 字符串，字段值为字符串类型，需要单独处理
+	if strings.EqualFold(originalEvent.ChainType, "solana") {
+		return p.processSolana(parsedEvent, originalEvent)
+	}
+
 	// Ethereum 链
 	return p.processEthereum(parsedEvent, originalEvent)
 }
@@ -89,6 +94,31 @@ func (p *enterpriseNotifiedProcessor) processEthereum(parsedEvent *adapter.Parse
 		err = p.handlerCrossChain(originalEvent.ContractType, ei.EnterpriseInfo.ID,
 			ethCommon.Hash(ei.EnterpriseInfo.OriginHash).String(), ei.EnterpriseInfo.EnterpriseAddress.String(),
 			ei.EnterpriseInfo.Did, ei.EnterpriseInfo.Sender.String())
+		if err != nil {
+			h.logger.Errorf("[%s] %s: %v", h.eventName(), code.ErrMsgHandlerCrossChain, err)
+			return fmt.Errorf("%s: %v", code.ErrMsgHandlerCrossChain, err)
+		}
+	}
+
+	return nil
+}
+
+// processSolana 处理 Solana 链事件
+// Solana 合约通过日志输出 JSON 格式的事件数据，字段值为字符串类型
+func (p *enterpriseNotifiedProcessor) processSolana(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+	h := p.handler
+
+	// 从 Fields 中提取字段
+	id := parsedEvent.GetString("id")
+	originHash := parsedEvent.GetString("originHash")
+	address := parsedEvent.GetString("address")
+	did := parsedEvent.GetString("did")
+	sender := parsedEvent.GetString("sender")
+	needCrossChain := parsedEvent.GetBool("needCrossChain")
+
+	// 如果需要跨链
+	if needCrossChain {
+		err := p.handlerCrossChain(originalEvent.ContractType, id, originHash, address, did, sender)
 		if err != nil {
 			h.logger.Errorf("[%s] %s: %v", h.eventName(), code.ErrMsgHandlerCrossChain, err)
 			return fmt.Errorf("%s: %v", code.ErrMsgHandlerCrossChain, err)
