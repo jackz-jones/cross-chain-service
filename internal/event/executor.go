@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	chainCli "github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
+	commonEvent "github.com/jackz-jones/common/event"
 	"github.com/jackz-jones/cross-chain-service/internal/code"
 	"github.com/jackz-jones/cross-chain-service/internal/reliability"
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
-
-	chainCli "github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 )
 
 // CrossChainExecutor 跨链交易执行器接口
@@ -68,16 +68,23 @@ func newCrossChainExecutor(
 
 	// 如果启用了幂等性检查或重试机制，使用可靠执行器
 	if rc.EnableIdempotency || rc.EnableRetry {
+		// 创建共享的 Redis 适配器（幂等性检查和任务持久化复用同一连接）
+		commonRedis, err := commonEvent.NewRedisClient(
+			subConf.ConfType, subConf.RedisAddr,
+			subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
+		)
+		if err != nil {
+			logger.Errorf("[%s] failed to create redis client: %v", eventName, err)
+			return NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
+		}
+		redisAdapter := reliability.NewRedisAdapterFromCommon(commonRedis)
+
 		opts := []ReliableExecutorOption{}
 
 		// 配置幂等性检查
 		if rc.EnableIdempotency {
-			redisClient := reliability.NewGoRedisClient(
-				subConf.ConfType, subConf.RedisAddr,
-				subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
-			)
 			checker := reliability.NewRedisIdempotencyChecker(
-				redisClient,
+				redisAdapter,
 				"cross_chain:idempotent:",
 			)
 			idempotTTL := time.Duration(rc.IdempotencyTTL) * time.Second
@@ -114,12 +121,8 @@ func newCrossChainExecutor(
 			opts = append(opts, WithRetry(retryStrategy))
 		}
 
-		// 配置任务持久化
-		redisHashClient := reliability.NewGoRedisHashClient(
-			subConf.ConfType, subConf.RedisAddr,
-			subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
-		)
-		taskStore := reliability.NewRedisTaskStore(redisHashClient, "cross_chain:task:", 7*24*time.Hour)
+		// 配置任务持久化（复用同一个 Redis 适配器）
+		taskStore := reliability.NewRedisTaskStore(redisAdapter, "cross_chain:task:", 7*24*time.Hour)
 		opts = append(opts, WithTaskStore(taskStore))
 
 		defaultExecutor := NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
