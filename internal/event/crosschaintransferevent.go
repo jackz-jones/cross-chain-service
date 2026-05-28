@@ -40,7 +40,7 @@ func NewCrossChainTransferEventHandler(logger logx.Logger, svcCtx *svc.ServiceCo
 	registry := adapter.GlobalRegistry()
 
 	h.BaseEventHandler = NewBaseEventHandler(logger, svcCtx, registry, processor, contractDesc, crossTargetChainConf)
-	h.executor = NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, processor.EventName())
+	h.executor = newCrossChainExecutor(logger, svcCtx, crossTargetChainConf, processor.EventName())
 
 	return h
 }

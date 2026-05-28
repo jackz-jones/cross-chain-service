@@ -3,9 +3,11 @@ package event
 
 import (
 	"fmt"
+	"time"
 
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
 	"github.com/jackz-jones/cross-chain-service/internal/code"
+	"github.com/jackz-jones/cross-chain-service/internal/reliability"
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -50,6 +52,82 @@ func NewDefaultCrossChainExecutor(
 		crossTargetChainConf: crossTargetChainConf,
 		eventName:            eventName,
 	}
+}
+
+// newCrossChainExecutor 根据配置创建跨链交易执行器
+// 如果启用了可靠性配置（幂等性或重试），则创建 ReliableCrossChainExecutor
+// 否则创建默认的 DefaultCrossChainExecutor
+func newCrossChainExecutor(
+	logger logx.Logger,
+	svcCtx *svc.ServiceContext,
+	crossTargetChainConf *chainCli.ChainAndContractName,
+	eventName string,
+) CrossChainExecutor {
+	rc := svcCtx.Config.ReliabilityConf
+	subConf := svcCtx.Config.SubscribeConf
+
+	// 如果启用了幂等性检查或重试机制，使用可靠执行器
+	if rc.EnableIdempotency || rc.EnableRetry {
+		opts := []ReliableExecutorOption{}
+
+		// 配置幂等性检查
+		if rc.EnableIdempotency {
+			redisClient := reliability.NewGoRedisClient(
+				subConf.ConfType, subConf.RedisAddr,
+				subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
+			)
+			checker := reliability.NewRedisIdempotencyChecker(
+				redisClient,
+				"cross_chain:idempotent:",
+			)
+			idempotTTL := time.Duration(rc.IdempotencyTTL) * time.Second
+			if idempotTTL == 0 {
+				idempotTTL = 24 * time.Hour
+			}
+			opts = append(opts, WithIdempotency(checker, idempotTTL))
+		}
+
+		// 配置重试策略
+		if rc.EnableRetry {
+			maxRetries := rc.MaxRetries
+			if maxRetries == 0 {
+				maxRetries = 3
+			}
+			baseDelay := rc.RetryBaseDelay
+			if baseDelay == 0 {
+				baseDelay = 1000
+			}
+			maxDelay := rc.RetryMaxDelay
+			if maxDelay == 0 {
+				maxDelay = 30000
+			}
+			multiplier := rc.RetryMultiplier
+			if multiplier == 0 {
+				multiplier = 2.0
+			}
+			retryStrategy := reliability.NewRetryStrategy(&reliability.RetryConfig{
+				MaxRetries: maxRetries,
+				BaseDelay:  time.Duration(baseDelay) * time.Millisecond,
+				MaxDelay:   time.Duration(maxDelay) * time.Millisecond,
+				Multiplier: multiplier,
+			})
+			opts = append(opts, WithRetry(retryStrategy))
+		}
+
+		// 配置任务持久化
+		redisHashClient := reliability.NewGoRedisHashClient(
+			subConf.ConfType, subConf.RedisAddr,
+			subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
+		)
+		taskStore := reliability.NewRedisTaskStore(redisHashClient, "cross_chain:task:", 7*24*time.Hour)
+		opts = append(opts, WithTaskStore(taskStore))
+
+		defaultExecutor := NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
+		return NewReliableCrossChainExecutor(defaultExecutor, logger, eventName, opts...)
+	}
+
+	// 默认使用基础执行器
+	return NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
 }
 
 // Execute 执行跨链交易

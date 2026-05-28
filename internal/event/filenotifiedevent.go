@@ -41,7 +41,7 @@ func NewFileNotifiedEventHandler(logger logx.Logger, svcCtx *svc.ServiceContext,
 	registry := adapter.GlobalRegistry()
 
 	h.BaseEventHandler = NewBaseEventHandler(logger, svcCtx, registry, processor, contractDesc, crossTargetChainConf)
-	h.executor = NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, processor.EventName())
+	h.executor = newCrossChainExecutor(logger, svcCtx, crossTargetChainConf, processor.EventName())
 
 	return h
 }
