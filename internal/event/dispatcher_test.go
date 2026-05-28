@@ -37,7 +37,7 @@ func TestHandlerDispatcher_DispatchToCorrectHandler(t *testing.T) {
 
 	event := commonEvent.TradeGuardEvent{
 		EventName: "Event2",
-		ChainType: "ethereum",
+		ChainType: TestChainTypeEthereum,
 		EventData: []byte("test-data"),
 	}
 
@@ -60,7 +60,7 @@ func TestHandlerDispatcher_DispatchToCorrectHandler(t *testing.T) {
 	if h2.lastEvent.EventName != "Event2" {
 		t.Errorf("expected event name 'Event2', got '%s'", h2.lastEvent.EventName)
 	}
-	if h2.lastEvent.ChainType != "ethereum" {
+	if h2.lastEvent.ChainType != TestChainTypeEthereum {
 		t.Errorf("expected chain type 'ethereum', got '%s'", h2.lastEvent.ChainType)
 	}
 }

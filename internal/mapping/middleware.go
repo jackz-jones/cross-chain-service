@@ -37,7 +37,9 @@ func (c *MiddlewareChain) Register(mw Middleware) {
 }
 
 // Execute 按名称列表顺序执行中间件
-func (c *MiddlewareChain) Execute(ctx context.Context, names []string, fields map[string]interface{}) (map[string]interface{}, error) {
+func (c *MiddlewareChain) Execute(
+	ctx context.Context, names []string, fields map[string]interface{},
+) (map[string]interface{}, error) {
 	current := fields
 	for _, name := range names {
 		mw, ok := c.middlewares[name]
@@ -66,7 +68,10 @@ type FuncMiddleware struct {
 }
 
 // NewFuncMiddleware 创建函数式中间件
-func NewFuncMiddleware(name string, fn func(ctx context.Context, fields map[string]interface{}) (map[string]interface{}, error)) *FuncMiddleware {
+func NewFuncMiddleware(
+	name string,
+	fn func(ctx context.Context, fields map[string]interface{}) (map[string]interface{}, error),
+) *FuncMiddleware {
 	return &FuncMiddleware{name: name, fn: fn}
 }
 

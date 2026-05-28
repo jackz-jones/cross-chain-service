@@ -56,7 +56,9 @@ func (p *crossChainMintProcessor) RequiredEventDataLength() int {
 }
 
 // ProcessParsedEvent 处理解析后的事件
-func (p *crossChainMintProcessor) ProcessParsedEvent(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *crossChainMintProcessor) ProcessParsedEvent(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	if parsedEvent.EventDataItems != nil {
 		return p.processChainmaker(parsedEvent, originalEvent)
 	}
@@ -70,7 +72,9 @@ func (p *crossChainMintProcessor) ProcessParsedEvent(parsedEvent *adapter.Parsed
 }
 
 // processEthereum 处理以太坊事件
-func (p *crossChainMintProcessor) processEthereum(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *crossChainMintProcessor) processEthereum(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	var ccme commonEvent.CrossChainMintEvent
@@ -93,7 +97,9 @@ func (p *crossChainMintProcessor) processEthereum(parsedEvent *adapter.ParsedEve
 }
 
 // processSolana 处理 Solana 链事件
-func (p *crossChainMintProcessor) processSolana(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *crossChainMintProcessor) processSolana(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	// 从 Fields 中提取字段
@@ -114,7 +120,9 @@ func (p *crossChainMintProcessor) processSolana(parsedEvent *adapter.ParsedEvent
 }
 
 // processChainmaker 处理长安链事件
-func (p *crossChainMintProcessor) processChainmaker(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *crossChainMintProcessor) processChainmaker(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	ni := nftTypes.NFTInfo{}

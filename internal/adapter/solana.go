@@ -21,11 +21,11 @@ const (
 // SolanaEventData Solana 事件原始数据结构
 // 由 blockchain-interactive-service 的 SolanaClient.processAndPublishEvent 发布
 type SolanaEventData struct {
-	Signature string        `json:"signature"`
-	Slot      uint64        `json:"slot"`
-	Logs      []string      `json:"logs"`
-	Err       interface{}   `json:"err"`
-	BlockTime int64         `json:"blockTime,omitempty"`
+	Signature string      `json:"signature"`
+	Slot      uint64      `json:"slot"`
+	Logs      []string    `json:"logs"`
+	Err       interface{} `json:"err"`
+	BlockTime int64       `json:"blockTime,omitempty"`
 }
 
 // SolanaAdapter Solana 链适配器
@@ -43,7 +43,9 @@ func (a *SolanaAdapter) ChainType() string {
 
 // ParseEvent 解析 Solana 事件数据
 // 流程：JSON → SolanaEventData → 从 Logs 中提取事件 JSON → 解析为 Fields + RawData
-func (a *SolanaAdapter) ParseEvent(eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string) (*ParsedEvent, error) {
+func (a *SolanaAdapter) ParseEvent(
+	eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string,
+) (*ParsedEvent, error) {
 	// 1. 解析 Solana 事件结构
 	var solanaEvent SolanaEventData
 	if err := json.Unmarshal(eventData, &solanaEvent); err != nil {
@@ -85,7 +87,7 @@ func extractEventJSONFromLogs(logs []string) string {
 		// 尝试提取 "Program log: " 前缀的日志
 		if strings.HasPrefix(log, solanaEventLogPrefix) {
 			content = strings.TrimPrefix(log, solanaEventLogPrefix)
-		} else if strings.HasPrefix(log, solanaProgramDataPrefix) {
+		} else if strings.HasPrefix(log, solanaProgramDataPrefix) { //nolint:staticcheck
 			// Anchor emit! 格式暂不处理 base64 解码，跳过
 			continue
 		} else {

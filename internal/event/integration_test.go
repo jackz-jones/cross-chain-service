@@ -31,7 +31,7 @@ func TestIntegration_FullPipeline(t *testing.T) {
 	middlewareChain := mapping.NewMiddlewareChain()
 
 	// 2. 注册规则
-	engine.RegisterRule(&mapping.MappingRule{
+	engine.RegisterRule(&mapping.Rule{
 		SourceEventName: "EnterpriseNotifiedEvent",
 		TargetMethod:    "NotifyEnterpriseInfo",
 		RequiredFields:  []string{"id", "originHash"},

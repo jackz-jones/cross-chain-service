@@ -6,12 +6,17 @@ import (
 	"testing"
 )
 
+const (
+	testPrefix = "pre_"
+	testSuffix = "_suf"
+)
+
 // --- 规则引擎测试 ---
 
 func TestEngine_RegisterAndGetRule(t *testing.T) {
 	engine := NewEngine()
 
-	rule := &MappingRule{
+	rule := &Rule{
 		SourceEventName: "EnterpriseNotifiedEvent",
 		TargetMethod:    "NotifyEnterpriseInfo",
 		CallbackMethod:  "Callback",
@@ -40,7 +45,7 @@ func TestEngine_GetRule_NotFound(t *testing.T) {
 
 func TestEngine_HasRule(t *testing.T) {
 	engine := NewEngine()
-	engine.RegisterRule(&MappingRule{SourceEventName: "Event1"})
+	engine.RegisterRule(&Rule{SourceEventName: "Event1"})
 
 	if !engine.HasRule("Event1") {
 		t.Error("expected HasRule to return true for registered event")
@@ -52,7 +57,7 @@ func TestEngine_HasRule(t *testing.T) {
 
 func TestEngine_RegisterRules_Batch(t *testing.T) {
 	engine := NewEngine()
-	rules := []*MappingRule{
+	rules := []*Rule{
 		{SourceEventName: "Event1", TargetMethod: "Method1"},
 		{SourceEventName: "Event2", TargetMethod: "Method2"},
 		{SourceEventName: "Event3", TargetMethod: "Method3"},
@@ -68,7 +73,7 @@ func TestEngine_RegisterRules_Batch(t *testing.T) {
 
 func TestEngine_MapFields_WithMapping(t *testing.T) {
 	engine := NewEngine()
-	engine.RegisterRule(&MappingRule{
+	engine.RegisterRule(&Rule{
 		SourceEventName: "Event1",
 		TargetMethod:    "Method1",
 		RequiredFields:  []string{"id", "hash"},
@@ -79,8 +84,8 @@ func TestEngine_MapFields_WithMapping(t *testing.T) {
 	})
 
 	source := map[string]interface{}{
-		"id":   "001",
-		"hash": "0xabc",
+		"id":    "001",
+		"hash":  "0xabc",
 		"extra": "ignored",
 	}
 
@@ -102,7 +107,7 @@ func TestEngine_MapFields_WithMapping(t *testing.T) {
 
 func TestEngine_MapFields_MissingRequiredField(t *testing.T) {
 	engine := NewEngine()
-	engine.RegisterRule(&MappingRule{
+	engine.RegisterRule(&Rule{
 		SourceEventName: "Event1",
 		RequiredFields:  []string{"id", "hash"},
 	})
@@ -120,7 +125,7 @@ func TestEngine_MapFields_MissingRequiredField(t *testing.T) {
 
 func TestEngine_MapFields_NoMapping(t *testing.T) {
 	engine := NewEngine()
-	engine.RegisterRule(&MappingRule{
+	engine.RegisterRule(&Rule{
 		SourceEventName: "Event1",
 	})
 
@@ -147,11 +152,11 @@ func TestMiddlewareChain_Execute(t *testing.T) {
 
 	// 注册两个中间件
 	chain.Register(NewFuncMiddleware("addPrefix", func(ctx context.Context, fields map[string]interface{}) (map[string]interface{}, error) {
-		fields["prefix"] = "pre_"
+		fields["prefix"] = testPrefix
 		return fields, nil
 	}))
 	chain.Register(NewFuncMiddleware("addSuffix", func(ctx context.Context, fields map[string]interface{}) (map[string]interface{}, error) {
-		fields["suffix"] = "_suf"
+		fields["suffix"] = testSuffix
 		return fields, nil
 	}))
 
@@ -161,11 +166,11 @@ func TestMiddlewareChain_Execute(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if result["prefix"] != "pre_" {
-		t.Errorf("expected prefix 'pre_', got '%v'", result["prefix"])
+	if result["prefix"] != testPrefix {
+		t.Errorf("expected prefix '%s', got '%v'", testPrefix, result["prefix"])
 	}
-	if result["suffix"] != "_suf" {
-		t.Errorf("expected suffix '_suf', got '%v'", result["suffix"])
+	if result["suffix"] != testSuffix {
+		t.Errorf("expected suffix '%s', got '%v'", testSuffix, result["suffix"])
 	}
 }
 

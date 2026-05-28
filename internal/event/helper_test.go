@@ -36,14 +36,14 @@ func TestCheckWhitelist_EmptyAddressList(t *testing.T) {
 
 func TestNotifyFile_CurrentBehavior(t *testing.T) {
 	// 当前实现为空，总是返回 nil
-	err := NotifyFile("id-001", "0xaddr", 1)
+	err := NotifyFile(TestEventID, "0xaddr", 1)
 	if err != nil {
 		t.Fatalf("expected no error from NotifyFile stub, got: %v", err)
 	}
 }
 
 func TestCreateNotifyEnterpriseInfoKvs(t *testing.T) {
-	kvs, err := CreateNotifyEnterpriseInfoKvs("id-001", "0xhash", "0xaddr", "did:example:123", false)
+	kvs, err := CreateNotifyEnterpriseInfoKvs(TestEventID, TestTxHash, "0xaddr", "did:example:123", false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -63,11 +63,11 @@ func TestCreateNotifyEnterpriseInfoKvs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to unmarshal EnterpriseInfo: %v", err)
 	}
-	if ei.ID != "id-001" {
-		t.Errorf("expected ID 'id-001', got '%s'", ei.ID)
+	if ei.ID != TestEventID {
+		t.Errorf("expected ID '%s', got '%s'", TestEventID, ei.ID)
 	}
-	if ei.OriginHash != "0xhash" {
-		t.Errorf("expected OriginHash '0xhash', got '%s'", ei.OriginHash)
+	if ei.OriginHash != TestTxHash {
+		t.Errorf("expected OriginHash '%s', got '%s'", TestTxHash, ei.OriginHash)
 	}
 	if ei.Address != "0xaddr" {
 		t.Errorf("expected Address '0xaddr', got '%s'", ei.Address)
@@ -83,7 +83,7 @@ func TestCreateNotifyEnterpriseInfoKvs(t *testing.T) {
 }
 
 func TestCreateNotifyFileInfoKvs(t *testing.T) {
-	kvs, err := CreateNotifyFileInfoKvs("file-001", "0xhash", 2, true)
+	kvs, err := CreateNotifyFileInfoKvs("file-001", TestTxHash, 2, true)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -106,8 +106,8 @@ func TestCreateNotifyFileInfoKvs(t *testing.T) {
 	if fi.ID != "file-001" {
 		t.Errorf("expected ID 'file-001', got '%s'", fi.ID)
 	}
-	if fi.OriginHash != "0xhash" {
-		t.Errorf("expected OriginHash '0xhash', got '%s'", fi.OriginHash)
+	if fi.OriginHash != TestTxHash {
+		t.Errorf("expected OriginHash '%s', got '%s'", TestTxHash, fi.OriginHash)
 	}
 	if fi.MsgType != notificationTypes.MessageType(2) {
 		t.Errorf("expected MsgType 2, got %d", fi.MsgType)
@@ -120,7 +120,7 @@ func TestCreateNotifyFileInfoKvs(t *testing.T) {
 }
 
 func TestCreateCrossChainMintKvs(t *testing.T) {
-	kvs, err := CreateCrossChainMintKvs("nft-001", "0xowner", "0xholder", "0xhash", "metadata")
+	kvs, err := CreateCrossChainMintKvs("nft-001", "0xowner", "0xholder", TestTxHash, "metadata")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -149,8 +149,8 @@ func TestCreateCrossChainMintKvs(t *testing.T) {
 	if ni.Holder != "0xholder" {
 		t.Errorf("expected Holder '0xholder', got '%s'", ni.Holder)
 	}
-	if ni.OriginHash != "0xhash" {
-		t.Errorf("expected OriginHash '0xhash', got '%s'", ni.OriginHash)
+	if ni.OriginHash != TestTxHash {
+		t.Errorf("expected OriginHash '%s', got '%s'", TestTxHash, ni.OriginHash)
 	}
 	if ni.Data != "metadata" {
 		t.Errorf("expected Data 'metadata', got '%s'", ni.Data)
@@ -185,7 +185,7 @@ func TestCreateUpdateCrossChainStatusKvs(t *testing.T) {
 }
 
 func TestCreateCallbackKvs(t *testing.T) {
-	kvs, err := CreateCallbackKvs("id-001", "0xhash", "error message", 711000, 1)
+	kvs, err := CreateCallbackKvs(TestEventID, TestTxHash, "error message", 711000, 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -205,11 +205,11 @@ func TestCreateCallbackKvs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to unmarshal CallBackInfo: %v", err)
 	}
-	if cc.ID != "id-001" {
-		t.Errorf("expected ID 'id-001', got '%s'", cc.ID)
+	if cc.ID != TestEventID {
+		t.Errorf("expected ID '%s', got '%s'", TestEventID, cc.ID)
 	}
-	if cc.OriginHash != "0xhash" {
-		t.Errorf("expected OriginHash '0xhash', got '%s'", cc.OriginHash)
+	if cc.OriginHash != TestTxHash {
+		t.Errorf("expected OriginHash '%s', got '%s'", TestTxHash, cc.OriginHash)
 	}
 	if cc.Code != 711000 {
 		t.Errorf("expected Code 711000, got %d", cc.Code)
@@ -225,8 +225,10 @@ func TestCreateCallbackKvs(t *testing.T) {
 func TestSendCrossChainTx_Success(t *testing.T) {
 	mockClient := NewMockChainInteractive()
 
-	txId, err := SendCrossChainTx("chain1", "contract1", "method1", nil,
-		0, true, 30, mockClient)
+	txId, err := SendCrossChainTx(
+		TestChainTypeChainmaker, "contract1", "method1", nil,
+		0, true, 30, mockClient,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -239,8 +241,8 @@ func TestSendCrossChainTx_Success(t *testing.T) {
 		t.Fatalf("expected 1 call, got %d", mockClient.GetCallCount())
 	}
 	call := mockClient.GetLastCall()
-	if call.ChainName != "chain1" {
-		t.Errorf("expected ChainName 'chain1', got '%s'", call.ChainName)
+	if call.ChainName != TestChainTypeChainmaker {
+		t.Errorf("expected ChainName '%s', got '%s'", TestChainTypeChainmaker, call.ChainName)
 	}
 	if call.ContractName != "contract1" {
 		t.Errorf("expected ContractName 'contract1', got '%s'", call.ContractName)
@@ -255,8 +257,10 @@ func TestSendCrossChainTx_GrpcError(t *testing.T) {
 	mockClient.CallContractErr = errors.New("connection refused")
 	mockClient.CallContractResp = nil
 
-	_, err := SendCrossChainTx("chain1", "contract1", "method1", nil,
-		0, true, 30, mockClient)
+	_, err := SendCrossChainTx(
+		TestChainTypeChainmaker, "contract1", "method1", nil,
+		0, true, 30, mockClient,
+	)
 	if err == nil {
 		t.Fatal("expected error for gRPC failure")
 	}
@@ -267,8 +271,10 @@ func TestSendCrossChainTx_NonSuccessCode(t *testing.T) {
 	mockClient.CallContractResp.Code = 500000
 	mockClient.CallContractResp.Msg = "internal error"
 
-	_, err := SendCrossChainTx("chain1", "contract1", "method1", nil,
-		0, true, 30, mockClient)
+	_, err := SendCrossChainTx(
+		TestChainTypeChainmaker, "contract1", "method1", nil,
+		0, true, 30, mockClient,
+	)
 	if err == nil {
 		t.Fatal("expected error for non-success response code")
 	}

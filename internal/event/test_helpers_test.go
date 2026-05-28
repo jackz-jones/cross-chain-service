@@ -19,6 +19,17 @@ func init() {
 	adapter.RegisterAdapter(adapter.NewChainmakerAdapter())
 }
 
+// 测试常用标识符
+const (
+	TestEventID = "id-001"
+	TestTxHash  = "0xhash"
+
+	// 测试用链类型
+	TestChainTypeEthereum   = "ethereum"
+	TestChainTypeChainmaker = "chainmaker"
+	TestChainTypeSolana     = "solana"
+)
+
 // testSetup 测试环境配置
 type testSetup struct {
 	svcCtx               *svc.ServiceContext

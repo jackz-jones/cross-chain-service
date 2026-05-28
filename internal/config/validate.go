@@ -64,11 +64,12 @@ func (c *Config) ApplyEnvOverrides() {
 	}
 
 	// 可靠性配置
+	const boolTrue = "true"
 	if v := os.Getenv("CROSS_CHAIN_ENABLE_IDEMPOTENCY"); v != "" {
-		c.ReliabilityConf.EnableIdempotency = v == "true" || v == "1"
+		c.ReliabilityConf.EnableIdempotency = v == boolTrue || v == "1"
 	}
 	if v := os.Getenv("CROSS_CHAIN_ENABLE_RETRY"); v != "" {
-		c.ReliabilityConf.EnableRetry = v == "true" || v == "1"
+		c.ReliabilityConf.EnableRetry = v == boolTrue || v == "1"
 	}
 	if v := os.Getenv("CROSS_CHAIN_MAX_RETRIES"); v != "" {
 		if n, err := strconv.Atoi(v); err == nil {

@@ -14,10 +14,10 @@ type Config struct {
 	SendTxConf SendTxConf
 
 	// ReliabilityConf 可靠性配置（可选）
-	ReliabilityConf ReliabilityConf `json:",optional"`
+	ReliabilityConf ReliabilityConf `json:",optional"` //nolint:staticcheck
 
 	// RouteConf 路由配置（可选，不配置则使用默认的全互联路由）
-	RouteConf []RouteRule `json:",optional"`
+	RouteConf []RouteRule `json:",optional"` //nolint:staticcheck
 }
 
 // GrpcConf contain all config items for grpc server initiation
@@ -83,25 +83,25 @@ type SendTxConf struct {
 // ReliabilityConf 可靠性配置
 type ReliabilityConf struct {
 	// EnableIdempotency 是否启用幂等性检查
-	EnableIdempotency bool `json:",optional"`
+	EnableIdempotency bool `json:",optional"` //nolint:staticcheck
 
 	// IdempotencyTTL 幂等性记录过期时间（秒），默认 86400（24小时）
-	IdempotencyTTL int64 `json:",optional"`
+	IdempotencyTTL int64 `json:",optional"` //nolint:staticcheck
 
 	// EnableRetry 是否启用重试
-	EnableRetry bool `json:",optional"`
+	EnableRetry bool `json:",optional"` //nolint:staticcheck
 
 	// MaxRetries 最大重试次数，默认 3
-	MaxRetries int `json:",optional"`
+	MaxRetries int `json:",optional"` //nolint:staticcheck
 
 	// RetryBaseDelay 重试基础延迟（毫秒），默认 1000
-	RetryBaseDelay int64 `json:",optional"`
+	RetryBaseDelay int64 `json:",optional"` //nolint:staticcheck
 
 	// RetryMaxDelay 重试最大延迟（毫秒），默认 30000
-	RetryMaxDelay int64 `json:",optional"`
+	RetryMaxDelay int64 `json:",optional"` //nolint:staticcheck
 
 	// RetryMultiplier 退避乘数，默认 2.0
-	RetryMultiplier float64 `json:",optional"`
+	RetryMultiplier float64 `json:",optional"` //nolint:staticcheck
 }
 
 // RouteRule 路由规则

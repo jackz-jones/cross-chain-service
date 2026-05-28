@@ -60,7 +60,9 @@ func (p *enterpriseNotifiedProcessor) RequiredEventDataLength() int {
 }
 
 // ProcessParsedEvent 处理解析后的事件
-func (p *enterpriseNotifiedProcessor) ProcessParsedEvent(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *enterpriseNotifiedProcessor) ProcessParsedEvent(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	// 根据链类型处理
 	if parsedEvent.EventDataItems != nil {
 		// Chainmaker 链
@@ -77,7 +79,9 @@ func (p *enterpriseNotifiedProcessor) ProcessParsedEvent(parsedEvent *adapter.Pa
 }
 
 // processEthereum 处理以太坊事件
-func (p *enterpriseNotifiedProcessor) processEthereum(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *enterpriseNotifiedProcessor) processEthereum(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	// json 反序列化成企业通知事件结构
@@ -105,7 +109,9 @@ func (p *enterpriseNotifiedProcessor) processEthereum(parsedEvent *adapter.Parse
 
 // processSolana 处理 Solana 链事件
 // Solana 合约通过日志输出 JSON 格式的事件数据，字段值为字符串类型
-func (p *enterpriseNotifiedProcessor) processSolana(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *enterpriseNotifiedProcessor) processSolana(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	// 从 Fields 中提取字段
@@ -129,7 +135,9 @@ func (p *enterpriseNotifiedProcessor) processSolana(parsedEvent *adapter.ParsedE
 }
 
 // processChainmaker 处理长安链事件
-func (p *enterpriseNotifiedProcessor) processChainmaker(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *enterpriseNotifiedProcessor) processChainmaker(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	// 解析企业通知事件结构

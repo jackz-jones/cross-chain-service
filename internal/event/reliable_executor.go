@@ -13,13 +13,13 @@ import (
 // ReliableCrossChainExecutor 可靠的跨链交易执行器
 // 在 DefaultCrossChainExecutor 基础上增加幂等性检查和重试机制
 type ReliableCrossChainExecutor struct {
-	inner        CrossChainExecutor
-	idempotency  reliability.IdempotencyChecker
-	taskStore    reliability.TaskStore
-	retry        *reliability.RetryStrategy
-	logger       logx.Logger
-	eventName    string
-	idempotTTL   time.Duration
+	inner       CrossChainExecutor
+	idempotency reliability.IdempotencyChecker
+	taskStore   reliability.TaskStore
+	retry       *reliability.RetryStrategy
+	logger      logx.Logger
+	eventName   string
+	idempotTTL  time.Duration
 }
 
 // ReliableExecutorOption 可靠执行器配置选项
@@ -67,7 +67,9 @@ func NewReliableCrossChainExecutor(
 }
 
 // Execute 执行跨链交易（带可靠性保障）
-func (e *ReliableCrossChainExecutor) Execute(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair) (string, error) {
+func (e *ReliableCrossChainExecutor) Execute(
+	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+) (string, error) {
 	ctx := context.Background()
 
 	// 1. 幂等性检查（如果配置了）
@@ -90,11 +92,15 @@ func (e *ReliableCrossChainExecutor) Execute(targetChainName, targetContractName
 	if e.retry != nil {
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
-			txId, err = e.inner.Execute(targetChainName, targetContractName, method, kvs)
+			txId, err = e.inner.Execute(
+				targetChainName, targetContractName, method, kvs,
+			)
 			return err
 		})
 	} else {
-		txId, execErr = e.inner.Execute(targetChainName, targetContractName, method, kvs)
+		txId, execErr = e.inner.Execute(
+			targetChainName, targetContractName, method, kvs,
+		)
 	}
 
 	// 3. 标记已处理（如果配置了幂等性且执行成功）
@@ -156,11 +162,17 @@ func (e *ReliableCrossChainExecutor) ExecuteWithCallback(
 	if e.retry != nil {
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
-			txId, err = e.inner.ExecuteWithCallback(targetChainName, targetContractName, method, kvs, callbackMethod, callbackKvsBuilder)
+			txId, err = e.inner.ExecuteWithCallback(
+				targetChainName, targetContractName,
+				method, kvs, callbackMethod, callbackKvsBuilder,
+			)
 			return err
 		})
 	} else {
-		txId, execErr = e.inner.ExecuteWithCallback(targetChainName, targetContractName, method, kvs, callbackMethod, callbackKvsBuilder)
+		txId, execErr = e.inner.ExecuteWithCallback(
+			targetChainName, targetContractName,
+			method, kvs, callbackMethod, callbackKvsBuilder,
+		)
 	}
 
 	// 3. 标记已处理

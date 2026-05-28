@@ -8,36 +8,38 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// redisNodeAdapter 适配 common/event.RedisNode 到 RedisClient 和 RedisHashClient 接口
+// RedisNodeAdapter 适配 common/event.RedisNode 到 RedisClient 和 RedisHashClient 接口
 // 同时实现两个接口，复用同一个底层连接
-type redisNodeAdapter struct {
+type RedisNodeAdapter struct {
 	node commonEvent.RedisNode
 }
 
 // NewRedisAdapterFromCommon 基于 common/event.RedisClient 创建统一的 Redis 适配器
 // 同时实现 RedisClient 和 RedisHashClient 接口，复用 common 包已有的 Redis 连接管理能力
-func NewRedisAdapterFromCommon(client *commonEvent.RedisClient) *redisNodeAdapter {
-	return &redisNodeAdapter{node: client.RedisClient}
+func NewRedisAdapterFromCommon(client *commonEvent.RedisClient) *RedisNodeAdapter {
+	return &RedisNodeAdapter{node: client.RedisClient}
 }
 
 // SetNX 实现 RedisClient.SetNX
-func (a *redisNodeAdapter) SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) (bool, error) {
+func (a *RedisNodeAdapter) SetNX(
+	ctx context.Context, key string, value interface{}, expiration time.Duration,
+) (bool, error) {
 	return a.node.SetNX(ctx, key, value, expiration).Result()
 }
 
 // Exists 实现 RedisClient.Exists
-func (a *redisNodeAdapter) Exists(ctx context.Context, key string) (bool, error) {
+func (a *RedisNodeAdapter) Exists(ctx context.Context, key string) (bool, error) {
 	n, err := a.node.Exists(ctx, key).Result()
 	return n > 0, err
 }
 
 // HSet 实现 RedisHashClient.HSet
-func (a *redisNodeAdapter) HSet(ctx context.Context, key string, field string, value interface{}) error {
+func (a *RedisNodeAdapter) HSet(ctx context.Context, key string, field string, value interface{}) error {
 	return a.node.HSet(ctx, key, field, value).Err()
 }
 
 // HGet 实现 RedisHashClient.HGet
-func (a *redisNodeAdapter) HGet(ctx context.Context, key string, field string) (string, error) {
+func (a *RedisNodeAdapter) HGet(ctx context.Context, key string, field string) (string, error) {
 	result, err := a.node.HGet(ctx, key, field).Result()
 	if err == redis.Nil {
 		return "", nil
@@ -46,11 +48,11 @@ func (a *redisNodeAdapter) HGet(ctx context.Context, key string, field string) (
 }
 
 // HGetAll 实现 RedisHashClient.HGetAll
-func (a *redisNodeAdapter) HGetAll(ctx context.Context, key string) (map[string]string, error) {
+func (a *RedisNodeAdapter) HGetAll(ctx context.Context, key string) (map[string]string, error) {
 	return a.node.HGetAll(ctx, key).Result()
 }
 
 // Expire 实现 RedisHashClient.Expire
-func (a *redisNodeAdapter) Expire(ctx context.Context, key string, ttl time.Duration) error {
+func (a *RedisNodeAdapter) Expire(ctx context.Context, key string, ttl time.Duration) error {
 	return a.node.Expire(ctx, key, ttl).Err()
 }

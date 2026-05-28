@@ -8,9 +8,15 @@ import (
 	"github.com/jackz-jones/cross-chain-service/internal/code"
 )
 
+const (
+	chainTypeEthereum   = "ethereum"
+	chainTypeChainmaker = "chainmaker"
+	chainTypeSolana     = "solana"
+)
+
 func TestEthereumAdapter_ChainType(t *testing.T) {
 	adapter := NewEthereumAdapter()
-	if adapter.ChainType() != "ethereum" {
+	if adapter.ChainType() != chainTypeEthereum {
 		t.Errorf("expected 'ethereum', got '%s'", adapter.ChainType())
 	}
 }
@@ -81,7 +87,7 @@ func TestEthereumAdapter_ImplementsInterface(t *testing.T) {
 
 func TestChainmakerAdapter_ChainType(t *testing.T) {
 	adapter := NewChainmakerAdapter()
-	if adapter.ChainType() != "chainmaker" {
+	if adapter.ChainType() != chainTypeChainmaker {
 		t.Errorf("expected 'chainmaker', got '%s'", adapter.ChainType())
 	}
 }
@@ -146,7 +152,7 @@ func TestRegistry_RegisterAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if adapter.ChainType() != "ethereum" {
+	if adapter.ChainType() != chainTypeEthereum {
 		t.Errorf("expected 'ethereum', got '%s'", adapter.ChainType())
 	}
 
@@ -154,7 +160,7 @@ func TestRegistry_RegisterAndGet(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if adapter.ChainType() != "chainmaker" {
+	if adapter.ChainType() != chainTypeChainmaker {
 		t.Errorf("expected 'chainmaker', got '%s'", adapter.ChainType())
 	}
 }
@@ -172,11 +178,11 @@ func TestGlobalRegistry(t *testing.T) {
 	RegisterAdapter(NewEthereumAdapter())
 	RegisterAdapter(NewChainmakerAdapter())
 
-	adapter, err := GetAdapter("ethereum")
+	adapter, err := GetAdapter(chainTypeEthereum)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if adapter.ChainType() != "ethereum" {
+	if adapter.ChainType() != chainTypeEthereum {
 		t.Errorf("expected 'ethereum', got '%s'", adapter.ChainType())
 	}
 }
@@ -246,7 +252,7 @@ func TestParsedEvent_GetInt(t *testing.T) {
 
 func TestSolanaAdapter_ChainType(t *testing.T) {
 	adapter := NewSolanaAdapter()
-	if adapter.ChainType() != "solana" {
+	if adapter.ChainType() != chainTypeSolana {
 		t.Errorf("expected 'solana', got '%s'", adapter.ChainType())
 	}
 }
@@ -418,11 +424,11 @@ func TestSolanaAdapter_GlobalRegistry(t *testing.T) {
 	// Solana 适配器应该在 init() 中自动注册到全局注册表
 
 	// 小写查询
-	adapter, err := GetAdapter("solana")
+	adapter, err := GetAdapter(chainTypeSolana)
 	if err != nil {
 		t.Fatalf("expected solana adapter registered, got error: %v", err)
 	}
-	if adapter.ChainType() != "solana" {
+	if adapter.ChainType() != chainTypeSolana {
 		t.Errorf("expected 'solana', got '%s'", adapter.ChainType())
 	}
 
@@ -431,7 +437,7 @@ func TestSolanaAdapter_GlobalRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected solana adapter for 'SOLANA', got error: %v", err)
 	}
-	if adapter.ChainType() != "solana" {
+	if adapter.ChainType() != chainTypeSolana {
 		t.Errorf("expected 'solana', got '%s'", adapter.ChainType())
 	}
 
@@ -440,7 +446,7 @@ func TestSolanaAdapter_GlobalRegistry(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected solana adapter for 'Solana', got error: %v", err)
 	}
-	if adapter.ChainType() != "solana" {
+	if adapter.ChainType() != chainTypeSolana {
 		t.Errorf("expected 'solana', got '%s'", adapter.ChainType())
 	}
 }

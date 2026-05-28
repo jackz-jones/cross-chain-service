@@ -16,9 +16,9 @@ import (
 	chainCli "github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 )
 
-// EventProcessor 事件业务处理接口
+// Processor 事件业务处理接口
 // 每个具体事件处理器只需实现此接口，专注于业务逻辑
-type EventProcessor interface {
+type Processor interface {
 	// EventName 返回处理的事件名称
 	EventName() string
 
@@ -38,7 +38,7 @@ type BaseEventHandler struct {
 	svcCtx    *svc.ServiceContext
 	logger    logx.Logger
 	registry  *adapter.Registry
-	processor EventProcessor
+	processor Processor
 
 	// 当前链下的合约配置
 	contractConfs []*chainPb.ContractDesc
@@ -52,7 +52,7 @@ func NewBaseEventHandler(
 	logger logx.Logger,
 	svcCtx *svc.ServiceContext,
 	registry *adapter.Registry,
-	processor EventProcessor,
+	processor Processor,
 	contractConfs []*chainPb.ContractDesc,
 	crossTargetChainConf *chainCli.ChainAndContractName,
 ) *BaseEventHandler {

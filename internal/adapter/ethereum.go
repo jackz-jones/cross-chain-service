@@ -26,7 +26,9 @@ func (a *EthereumAdapter) ChainType() string {
 
 // ParseEvent 解析以太坊事件数据
 // 流程：JSON → ethTypes.Log → 查找 ABI → NewEthEventHandler → UnpackIntoMap → Marshal → ParsedEvent
-func (a *EthereumAdapter) ParseEvent(eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string) (*ParsedEvent, error) {
+func (a *EthereumAdapter) ParseEvent(
+	eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string,
+) (*ParsedEvent, error) {
 	// 1. 解析以太坊事件结构
 	var vLog ethTypes.Log
 	if err := json.Unmarshal(eventData, &vLog); err != nil {

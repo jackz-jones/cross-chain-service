@@ -57,7 +57,9 @@ func (p *fileNotifiedProcessor) RequiredEventDataLength() int {
 }
 
 // ProcessParsedEvent 处理解析后的事件
-func (p *fileNotifiedProcessor) ProcessParsedEvent(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *fileNotifiedProcessor) ProcessParsedEvent(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	if parsedEvent.EventDataItems != nil {
 		return p.processChainmaker(parsedEvent, originalEvent)
 	}
@@ -71,7 +73,9 @@ func (p *fileNotifiedProcessor) ProcessParsedEvent(parsedEvent *adapter.ParsedEv
 }
 
 // processEthereum 处理以太坊事件
-func (p *fileNotifiedProcessor) processEthereum(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *fileNotifiedProcessor) processEthereum(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	var fi commonEvent.FileNotifiedEvent
@@ -96,7 +100,9 @@ func (p *fileNotifiedProcessor) processEthereum(parsedEvent *adapter.ParsedEvent
 }
 
 // processSolana 处理 Solana 链事件
-func (p *fileNotifiedProcessor) processSolana(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *fileNotifiedProcessor) processSolana(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	// 从 Fields 中提取字段
@@ -119,7 +125,9 @@ func (p *fileNotifiedProcessor) processSolana(parsedEvent *adapter.ParsedEvent, 
 }
 
 // processChainmaker 处理长安链事件
-func (p *fileNotifiedProcessor) processChainmaker(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) error {
+func (p *fileNotifiedProcessor) processChainmaker(
+	parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent,
+) error {
 	h := p.handler
 
 	fi := notificationTypes.FileInfo{}

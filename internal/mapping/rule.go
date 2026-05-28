@@ -1,9 +1,9 @@
 // Package mapping 事件-动作映射规则引擎
 package mapping
 
-// MappingRule 事件映射规则
+// Rule 事件映射规则
 // 定义源事件名到目标合约方法的映射关系
-type MappingRule struct {
+type Rule struct {
 	// SourceEventName 源事件名称
 	SourceEventName string `json:"sourceEventName"`
 

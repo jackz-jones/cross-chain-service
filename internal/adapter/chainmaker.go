@@ -25,7 +25,9 @@ func (a *ChainmakerAdapter) ChainType() string {
 
 // ParseEvent 解析长安链事件数据
 // 流程：JSON → ContractEventInfo → 提取 EventData 列表 → ParsedEvent
-func (a *ChainmakerAdapter) ParseEvent(eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string) (*ParsedEvent, error) {
+func (a *ChainmakerAdapter) ParseEvent(
+	eventData []byte, contractConfs []*chainPb.ContractDesc, contractName string,
+) (*ParsedEvent, error) {
 	// 1. 解析长安链事件结构
 	var eventInfo common.ContractEventInfo
 	if err := json.Unmarshal(eventData, &eventInfo); err != nil {

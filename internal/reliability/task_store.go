@@ -142,7 +142,9 @@ func (s *RedisTaskStore) Get(ctx context.Context, taskID string) (*CrossChainTas
 }
 
 // UpdateState 更新任务状态
-func (s *RedisTaskStore) UpdateState(ctx context.Context, taskID string, state TaskState, txID string, errMsg string) error {
+func (s *RedisTaskStore) UpdateState(
+	ctx context.Context, taskID string, state TaskState, txID string, errMsg string,
+) error {
 	task, err := s.Get(ctx, taskID)
 	if err != nil {
 		return err
@@ -192,7 +194,9 @@ func (s *InMemoryTaskStore) Get(_ context.Context, taskID string) (*CrossChainTa
 }
 
 // UpdateState 更新任务状态
-func (s *InMemoryTaskStore) UpdateState(_ context.Context, taskID string, state TaskState, txID string, errMsg string) error {
+func (s *InMemoryTaskStore) UpdateState(
+	_ context.Context, taskID string, state TaskState, txID string, errMsg string,
+) error {
 	task, ok := s.tasks[taskID]
 	if !ok {
 		return fmt.Errorf("task not found: %s", taskID)

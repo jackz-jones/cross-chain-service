@@ -134,7 +134,9 @@ func newCrossChainExecutor(
 }
 
 // Execute 执行跨链交易
-func (e *DefaultCrossChainExecutor) Execute(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair) (string, error) {
+func (e *DefaultCrossChainExecutor) Execute(
+	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+) (string, error) {
 	txId, err := SendCrossChainTx(
 		targetChainName,
 		targetContractName,

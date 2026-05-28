@@ -5,11 +5,18 @@ import (
 	"testing"
 )
 
+const (
+	testRedisAddr    = "localhost:6379"
+	testOriginalAddr = "original:6379"
+	testEnvRedisAddr = "env-redis:6379"
+	testGrpcEndpoint = "localhost:8080"
+)
+
 func TestConfig_Validate_Valid(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "localhost:6379"
+	c.SubscribeConf.RedisAddr = testRedisAddr
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: "localhost:8080"},
+		"chain": {Endpoint: testGrpcEndpoint},
 	}
 
 	err := c.Validate()
@@ -32,7 +39,7 @@ func TestConfig_Validate_MissingRedisAddr(t *testing.T) {
 
 func TestConfig_Validate_EmptyExternalGrpc(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "localhost:6379"
+	c.SubscribeConf.RedisAddr = testRedisAddr
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{}
 
 	err := c.Validate()
@@ -43,7 +50,7 @@ func TestConfig_Validate_EmptyExternalGrpc(t *testing.T) {
 
 func TestConfig_Validate_MissingEndpoint(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "localhost:6379"
+	c.SubscribeConf.RedisAddr = testRedisAddr
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
 		"chain": {Endpoint: ""},
 	}
@@ -56,9 +63,9 @@ func TestConfig_Validate_MissingEndpoint(t *testing.T) {
 
 func TestConfig_Validate_InvalidRetryConfig(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "localhost:6379"
+	c.SubscribeConf.RedisAddr = testRedisAddr
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: "localhost:8080"},
+		"chain": {Endpoint: testGrpcEndpoint},
 	}
 	c.ReliabilityConf.MaxRetries = -1
 
@@ -70,9 +77,9 @@ func TestConfig_Validate_InvalidRetryConfig(t *testing.T) {
 
 func TestConfig_Validate_InvalidRouteConf(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "localhost:6379"
+	c.SubscribeConf.RedisAddr = testRedisAddr
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: "localhost:8080"},
+		"chain": {Endpoint: testGrpcEndpoint},
 	}
 	c.RouteConf = []RouteRule{
 		{SourceChain: "", TargetChains: []string{"chain2"}},
@@ -87,7 +94,7 @@ func TestConfig_Validate_InvalidRouteConf(t *testing.T) {
 func TestConfig_ApplyEnvOverrides(t *testing.T) {
 	c := &Config{}
 
-	os.Setenv("CROSS_CHAIN_REDIS_ADDR", "env-redis:6379")
+	os.Setenv("CROSS_CHAIN_REDIS_ADDR", testEnvRedisAddr)
 	os.Setenv("CROSS_CHAIN_ENABLE_RETRY", "true")
 	os.Setenv("CROSS_CHAIN_MAX_RETRIES", "5")
 	os.Setenv("CROSS_CHAIN_TX_TIMEOUT", "30")
@@ -100,8 +107,8 @@ func TestConfig_ApplyEnvOverrides(t *testing.T) {
 
 	c.ApplyEnvOverrides()
 
-	if c.SubscribeConf.RedisAddr != "env-redis:6379" {
-		t.Errorf("expected RedisAddr 'env-redis:6379', got '%s'", c.SubscribeConf.RedisAddr)
+	if c.SubscribeConf.RedisAddr != testEnvRedisAddr {
+		t.Errorf("expected RedisAddr '%s', got '%s'", testEnvRedisAddr, c.SubscribeConf.RedisAddr)
 	}
 	if !c.ReliabilityConf.EnableRetry {
 		t.Error("expected EnableRetry to be true")
@@ -116,14 +123,14 @@ func TestConfig_ApplyEnvOverrides(t *testing.T) {
 
 func TestConfig_ApplyEnvOverrides_NoEnv(t *testing.T) {
 	c := &Config{}
-	c.SubscribeConf.RedisAddr = "original:6379"
+	c.SubscribeConf.RedisAddr = testOriginalAddr
 
 	// 确保环境变量不存在
 	os.Unsetenv("CROSS_CHAIN_REDIS_ADDR")
 
 	c.ApplyEnvOverrides()
 
-	if c.SubscribeConf.RedisAddr != "original:6379" {
+	if c.SubscribeConf.RedisAddr != testOriginalAddr {
 		t.Errorf("expected original addr, got '%s'", c.SubscribeConf.RedisAddr)
 	}
 }

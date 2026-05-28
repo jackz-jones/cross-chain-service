@@ -10,25 +10,25 @@ import (
 // 管理事件映射规则，根据事件名查找对应的映射规则
 type Engine struct {
 	mu    sync.RWMutex
-	rules map[string]*MappingRule
+	rules map[string]*Rule
 }
 
 // NewEngine 创建规则引擎
 func NewEngine() *Engine {
 	return &Engine{
-		rules: make(map[string]*MappingRule),
+		rules: make(map[string]*Rule),
 	}
 }
 
 // RegisterRule 注册映射规则
-func (e *Engine) RegisterRule(rule *MappingRule) {
+func (e *Engine) RegisterRule(rule *Rule) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	e.rules[rule.SourceEventName] = rule
 }
 
 // RegisterRules 批量注册映射规则
-func (e *Engine) RegisterRules(rules []*MappingRule) {
+func (e *Engine) RegisterRules(rules []*Rule) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for _, rule := range rules {
@@ -37,7 +37,7 @@ func (e *Engine) RegisterRules(rules []*MappingRule) {
 }
 
 // GetRule 根据事件名获取映射规则
-func (e *Engine) GetRule(eventName string) (*MappingRule, error) {
+func (e *Engine) GetRule(eventName string) (*Rule, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
@@ -57,11 +57,11 @@ func (e *Engine) HasRule(eventName string) bool {
 }
 
 // GetAllRules 获取所有规则
-func (e *Engine) GetAllRules() []*MappingRule {
+func (e *Engine) GetAllRules() []*Rule {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 
-	rules := make([]*MappingRule, 0, len(e.rules))
+	rules := make([]*Rule, 0, len(e.rules))
 	for _, rule := range e.rules {
 		rules = append(rules, rule)
 	}
