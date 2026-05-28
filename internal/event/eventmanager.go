@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackz-jones/cross-chain-service/internal/adapter"
 	"github.com/jackz-jones/cross-chain-service/internal/code"
+	"github.com/jackz-jones/cross-chain-service/internal/message"
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 
 	"github.com/Rican7/retry"
@@ -217,19 +219,26 @@ func (e *Manager) listenChainEvent(ctx context.Context, chainConfig *chainCli.Ch
 	}
 
 	// 事件处理器集合
-	eventHandlers := []handler{
+	var eventHandlers []handler
 
-		// 企业身份创建事件处理器
-		NewEnterpriseNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+	if e.svcCtx.Config.GenericConf.EnableGenericMode {
+		// 通用框架模式：从配置读取插件处理器
+		eventHandlers = e.createGenericHandlers(chainConfig, primaryTarget)
+	} else {
+		// 兼容模式：使用旧版硬编码处理器
+		eventHandlers = []handler{
+			// 企业身份创建事件处理器
+			NewEnterpriseNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
 
-		// 文件事件处理器
-		NewFileNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			// 文件事件处理器
+			NewFileNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
 
-		// 跨链转移事件处理器
-		NewCrossChainTransferEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			// 跨链转移事件处理器
+			NewCrossChainTransferEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
 
-		// 跨链铸造事件处理器
-		NewCrossChainMintEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			// 跨链铸造事件处理器
+			NewCrossChainMintEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+		}
 	}
 
 	dispatcher := newHandlerDispatcher(eventHandlers, e.Logger)
@@ -283,4 +292,42 @@ func (rt RouteTable) String() string {
 		sb.WriteString(fmt.Sprintf("%s → [%s]\n", source, strings.Join(targetNames, ", ")))
 	}
 	return sb.String()
+}
+
+// createGenericHandlers 创建通用框架模式的事件处理器
+func (e *Manager) createGenericHandlers(
+	chainConfig *chainCli.ChainAndContractName,
+	primaryTarget *chainCli.ChainAndContractName,
+) []handler {
+	var handlers []handler
+
+	// 从全局注册表获取已注册的通用处理器
+	registry := message.GlobalHandlerRegistry()
+	allHandlers := registry.GetAll()
+
+	for name, genericHandler := range allHandlers {
+		adapter := &genericHandlerAdapter{
+			svcCtx:               e.svcCtx,
+			logger:               e.Logger,
+			processor:            genericHandler,
+			registry:             adapter.GlobalRegistry(),
+			contractConfs:        chainConfig.ContractDescs,
+			crossTargetChainConf: primaryTarget,
+		}
+		// 使用通用处理器的事件名作为 handler 的事件名
+		handlers = append(handlers, adapter)
+		e.Logger.Infof("[event] registered generic handler: %s", name)
+	}
+
+	if len(handlers) == 0 {
+		e.Logger.Infof("[event] no generic handlers registered, falling back to legacy handlers")
+		return []handler{
+			NewEnterpriseNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			NewFileNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			NewCrossChainTransferEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+			NewCrossChainMintEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
+		}
+	}
+
+	return handlers
 }

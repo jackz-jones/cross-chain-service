@@ -109,3 +109,54 @@ SendTxConf:
   WithSyncResult: false
   # 发送交易超时时间,单位：s
   TxTimeout: 60
+
+# 通用框架配置（可选，启用后使用插件化事件处理器和三级路由）
+GenericConf:
+  # 是否启用通用模式，false 则使用旧的硬编码处理器
+  EnableGenericMode: false
+  # 超时检查间隔（秒）
+  TimeoutCheckInterval: 30
+  # 路由未找到时的策略：discard（丢弃）/ retry（重试）
+  UnroutedMessagePolicy: discard
+  # 事件插件配置列表
+  EventPlugins:
+    - EventName: "CrossChainMint"
+      HandlerType: "cross_chain_mint"
+      SourceContractType: "nft"
+      TargetContractType: "nft"
+      Enabled: true
+    - EventName: "CrossChainTransfer"
+      HandlerType: "cross_chain_transfer"
+      SourceContractType: "nft"
+      TargetContractType: "nft"
+      Enabled: true
+    - EventName: "EnterpriseNotified"
+      HandlerType: "enterprise_notified"
+      SourceContractType: "notification"
+      TargetContractType: "notification"
+      Enabled: true
+    - EventName: "FileNotified"
+      HandlerType: "file_notified"
+      SourceContractType: "notification"
+      TargetContractType: "notification"
+      Enabled: true
+  # 详细路由规则（支持三级路由，优先级高于 RouteConf）
+  # DetailedRoutes:
+  #   # 链级别路由
+  #   - Level: chain
+  #     SourceChain: chain1
+  #     TargetChain: chain2
+  #   # 合约级别路由
+  #   - Level: contract
+  #     SourceChain: chain1
+  #     SourceContractType: nft
+  #     TargetChain: chain2
+  #     TargetContractType: nft
+  #   # 事件级别路由
+  #   - Level: event
+  #     SourceChain: chain1
+  #     SourceContractType: nft
+  #     SourceEventName: CrossChainTransfer
+  #     TargetChain: chain2
+  #     TargetContractType: nft
+  #     TargetMethod: CrossChainMint

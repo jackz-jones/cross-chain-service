@@ -2,19 +2,15 @@ package event
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/jackz-jones/cross-chain-service/internal/code"
+	"github.com/jackz-jones/cross-chain-service/internal/plugins/nft"
+	"github.com/jackz-jones/cross-chain-service/internal/plugins/notification"
 
 	"github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
-	nftConst "github.com/jackz-jones/nft-contract-go/const"
-	nftTypes "github.com/jackz-jones/nft-contract-go/types"
-	notificationConst "github.com/jackz-jones/notification-contract-go/const"
-	notificationTypes "github.com/jackz-jones/notification-contract-go/types"
-	notificationUtil "github.com/jackz-jones/notification-contract-go/util"
 )
 
 // CheckWhitelist 检查地址是否都在白名单
@@ -76,129 +72,45 @@ func SendCrossChainTx(chainConfName, contractConfName, contractMethod string, kv
 	return txResp.Data.TxId, nil
 }
 
-// CreateNotifyEnterpriseInfoKvs 构造调用合约方法 NotifyEnterpriseInfo 参数 kvs，
-// 由 chain-interactive-service 服务本身去翻译成以太坊的 input data
+// ==========================================
+// 业务 KVS 构建函数（代理到插件模块）
+// 保留这些函数以兼容旧的事件处理器代码
+// ==========================================
+
+// CreateNotifyEnterpriseInfoKvs 构造调用合约方法 NotifyEnterpriseInfo 参数 kvs
+// 代理到 notification 插件模块
 func CreateNotifyEnterpriseInfoKvs(id, originHash, address, did string,
 	needCrossChain bool) ([]*chainPb.KeyValuePair, error) {
-
-	// 企业身份信息
-	ei := notificationTypes.EnterpriseInfo{
-		ID:         id,
-		OriginHash: originHash,
-		CreatedAt:  time.Now(),
-		Address:    address,
-		Did:        did,
-	}
-	eiBytes, err := json.Marshal(ei)
-	if err != nil {
-		return nil, fmt.Errorf("%s EnterpriseInfo: %v", code.ErrMsgJsonMarshal, err)
-	}
-
-	// 组装交易 kvs 参数
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   notificationConst.ParamEnterpriseInfo,
-			Value: eiBytes,
-		},
-		{
-			Key:   notificationConst.ParamNeedCrossChain,
-			Value: notificationUtil.BoolToBytes(needCrossChain),
-		},
-	}, nil
+	return notification.CreateNotifyEnterpriseInfoKvs(id, originHash, address, did, needCrossChain)
 }
 
-// CreateNotifyFileInfoKvs 构造调用合约方法 NotifyFileInfo 参数 kvs，由 chain-interactive-service 服务本身去翻译成以太坊的 input data
+// CreateNotifyFileInfoKvs 构造调用合约方法 NotifyFileInfo 参数 kvs
+// 代理到 notification 插件模块
 func CreateNotifyFileInfoKvs(id, originHash string, msgType int, needCrossChain bool) ([]*chainPb.KeyValuePair, error) {
-
-	// 文件信息
-	fi := notificationTypes.FileInfo{
-		ID:         id,
-		OriginHash: originHash,
-		CreatedAt:  time.Now(),
-		MsgType:    notificationTypes.MessageType(msgType),
-	}
-	fiBytes, err := json.Marshal(fi)
-	if err != nil {
-		return nil, fmt.Errorf("%s FileInfo: %v", code.ErrMsgJsonMarshal, err)
-	}
-
-	// 组装交易 kvs 参数
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   notificationConst.ParamFileInfo,
-			Value: fiBytes,
-		},
-		{
-			Key:   notificationConst.ParamNeedCrossChain,
-			Value: notificationUtil.BoolToBytes(needCrossChain),
-		},
-	}, nil
+	return notification.CreateNotifyFileInfoKvs(id, originHash, msgType, needCrossChain)
 }
 
-// CreateCrossChainMintKvs 构造调用合约方法 CrossChainMint 参数 kvs，由 chain-interactive-service 服务本身去翻译成以太坊的 input data
+// CreateCrossChainMintKvs 构造调用合约方法 CrossChainMint 参数 kvs
+// 代理到 nft 插件模块
 func CreateCrossChainMintKvs(id, owner, holder, originHash, data string) ([]*chainPb.KeyValuePair, error) {
-
-	// nft信息
-	ni := nftTypes.NFTInfo{
-		ID:         id,
-		Owner:      owner,
-		Holder:     holder,
-		OriginHash: originHash,
-		CreatedAt:  time.Now(),
-		Data:       data,
-	}
-	niBytes, err := json.Marshal(ni)
-	if err != nil {
-		return nil, fmt.Errorf("%s NFTInfo: %v", code.ErrMsgJsonMarshal, err)
-	}
-
-	// 组装交易 kvs 参数
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   nftConst.ParamNFTInfo,
-			Value: niBytes,
-		},
-	}, nil
+	return nft.CreateCrossChainMintKvs(id, owner, holder, originHash, data)
 }
 
-// CreateUpdateCrossChainStatusKvs 构造调用合约方法 UpdateCrossChainStatus 参数 kvs，
-// 由 chain-interactive-service 服务本身去翻译成以太坊的 input data
+// CreateUpdateCrossChainStatusKvs 构造调用合约方法 UpdateCrossChainStatus 参数 kvs
+// 代理到 nft 插件模块
 func CreateUpdateCrossChainStatusKvs(tokenId string, state int) ([]*chainPb.KeyValuePair, error) {
-
-	// 组装交易 kvs 参数
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   nftConst.ParamTokenId,
-			Value: []byte(tokenId),
-		},
-		{
-			Key:   nftConst.ParamState,
-			Value: []byte(fmt.Sprintf("%d", state)),
-		},
-	}, nil
+	return nft.CreateUpdateCrossChainStatusKvs(tokenId, state)
 }
 
-// CreateCallbackKvs 构造调用合约方法 Callback 参数 kvs，由 chain-interactive-service 服务本身去翻译成以太坊的 input data
+// CreateCallbackKvs 构造调用合约方法 Callback 参数 kvs
+// 代理到 notification 插件模块
 func CreateCallbackKvs(id, originHash, msg string, errCode, msgType int) ([]*chainPb.KeyValuePair, error) {
-
-	// callback信息
-	cc := notificationTypes.CallBackInfo{
-		ID:         id,
-		OriginHash: originHash,
-		Code:       errCode,
-		Msg:        msg,
-		MsgType:    notificationTypes.MessageType(msgType),
-	}
-	ccBytes, err := json.Marshal(cc)
-	if err != nil {
-		return nil, fmt.Errorf("%s CallBackInfo: %v", code.ErrMsgJsonMarshal, err)
-	}
-
-	// 组装交易 kvs 参数
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   notificationConst.ParamCallbackInfo,
-			Value: ccBytes,
-		},
-	}, nil
+	return notification.CreateCallbackKvs(id, originHash, msg, errCode, msgType)
 }
+
+// ==========================================
+// 时间相关辅助函数
+// ==========================================
+
+// Now 返回当前时间（便于测试中 mock）
+var Now = time.Now

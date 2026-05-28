@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -8,11 +9,13 @@ import (
 	"github.com/jackz-jones/cross-chain-service/internal"
 	"github.com/jackz-jones/cross-chain-service/internal/config"
 	"github.com/jackz-jones/cross-chain-service/internal/event"
+	"github.com/jackz-jones/cross-chain-service/internal/message"
 	"github.com/jackz-jones/cross-chain-service/internal/server"
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	pb "github.com/jackz-jones/cross-chain-service/pb"
 
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
@@ -34,6 +37,14 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 	ctx := svc.NewServiceContext(c)
+
+	// 如果启用通用框架模式，初始化通用消息路由引擎
+	if c.GenericConf.EnableGenericMode {
+		router := message.NewMessageRouter(c.GenericConf.DetailedRoutes,
+			logx.WithContext(context.Background()),
+			c.GenericConf.UnroutedMessagePolicy)
+		ctx.GenericRouter = router
+	}
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		pb.RegisterCrossChainServer(grpcServer, server.NewCrossChainServer(ctx))
