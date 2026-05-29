@@ -27,29 +27,13 @@ func (rc RespCode) String() string {
 }
 
 const (
-	ErrMsgNotMyEvent                      = "not my event"
-	ErrMsgEventDataEmpty                  = "event data empty"
-	ErrMsgJsonUnmarshal                   = "failed to json unmarshal"
-	ErrMsgInvalidEventInfoData            = "invalid event info data"
-	ErrMsgUnknownChainType                = "unknown chain type"
-	ErrMsgNewEthEventHandler              = "failed to NewEthEventHandler"
-	ErrMsgUnpackIntoInterface             = "failed to unpack eth event data into interface"
-	ErrMsgInvalidAbi                      = "invalid abi"
-	ErrMsgSendSupervisionAuthorization    = "failed to send supervision authorization req"
-	ErrMsgExecuteSupervisionAuthorization = "failed to execute supervision authorization req"
-	ErrMsgSendNotifyRequestFile           = "failed to send notify request file req"
-	ErrMsgExecuteNotifyRequestFile        = "failed to execute notify request file req"
-	ErrMsgSendCallContract                = "failed to send call contract req"
-	ErrMsgExecuteCallContract             = "failed to execute call contract req"
-	ErrMsgSendCrossChainTx                = "failed to send cross chain tx"
-	ErrMsgJsonMarshal                     = "failed to json marshal"
-	ErrMsgCreateNotifyEnterpriseInfoKvs   = "failed to create notify enterprise info kvs"
-	ErrMsgHandlerCrossChain               = "failed to handler cross chain"
-	ErrMsgCreateCrossChainMintKvs         = "failed to create cross chain mint kvs"
-	ErrMsgCreateUpdateCrossChainStatusKvs = "failed to create update cross chain status kvs"
-	ErrMsgCreateCallbackKvs               = "failed to create callback kvs"
-)
-
-const (
-	MsgSuccessToSendCrossChainTx = "success to send cross chain tx"
+	ErrMsgNotMyEvent           = "not my event"
+	ErrMsgEventDataEmpty       = "event data empty"
+	ErrMsgJsonUnmarshal        = "failed to json unmarshal"
+	ErrMsgInvalidEventInfoData = "invalid event info data"
+	ErrMsgUnknownChainType     = "unknown chain type"
+	ErrMsgNewEthEventHandler   = "failed to NewEthEventHandler"
+	ErrMsgUnpackIntoInterface  = "failed to unpack eth event data into interface"
+	ErrMsgInvalidAbi           = "invalid abi"
+	ErrMsgJsonMarshal          = "failed to json marshal"
 )
