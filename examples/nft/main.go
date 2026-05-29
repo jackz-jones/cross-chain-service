@@ -74,11 +74,10 @@ func (h *CrossChainMintHandler) BuildMessage(
 	// 从解析后的事件中提取 NFT 铸造信息
 	var mintEvent CrossChainMintEvent
 
-	// 优先使用 ParsedJSON（Solana 等链的解析结果）
-	if parsedEvent.ParsedJSON != nil {
-		data, _ := json.Marshal(parsedEvent.ParsedJSON)
-		if err := json.Unmarshal(data, &mintEvent); err != nil {
-			return nil, fmt.Errorf("failed to parse mint event from JSON: %w", err)
+	// 优先使用 RawData（Solana/Ethereum 等链的 JSON 解析结果）
+	if len(parsedEvent.RawData) > 0 {
+		if err := json.Unmarshal(parsedEvent.RawData, &mintEvent); err != nil {
+			return nil, fmt.Errorf("failed to parse mint event from RawData: %w", err)
 		}
 	} else if len(parsedEvent.EventDataItems) >= 5 {
 		// Chainmaker 格式：按字段顺序解析
@@ -108,11 +107,11 @@ func (h *CrossChainMintHandler) BuildMessage(
 
 	// 创建跨链消息
 	msg := message.NewCrossChainMessage(
-		originalEvent.ChainName,  // 源链
-		"",                       // 目标链（由路由表决定）
+		originalEvent.ChainName,    // 源链
+		"",                         // 目标链（由路由表决定）
 		originalEvent.ContractName, // 源合约
-		"",                       // 目标合约（由路由表决定）
-		"CrossChainMint",         // 目标方法
+		"",                         // 目标合约（由路由表决定）
+		"CrossChainMint",           // 目标方法
 		payload,
 	)
 
@@ -146,10 +145,10 @@ func (h *CrossChainTransferHandler) BuildMessage(
 
 	var transferEvent CrossChainTransferEvent
 
-	if parsedEvent.ParsedJSON != nil {
-		data, _ := json.Marshal(parsedEvent.ParsedJSON)
-		if err := json.Unmarshal(data, &transferEvent); err != nil {
-			return nil, fmt.Errorf("failed to parse transfer event from JSON: %w", err)
+	// 优先使用 RawData（Solana/Ethereum 等链的 JSON 解析结果）
+	if len(parsedEvent.RawData) > 0 {
+		if err := json.Unmarshal(parsedEvent.RawData, &transferEvent); err != nil {
+			return nil, fmt.Errorf("failed to parse transfer event from RawData: %w", err)
 		}
 	} else if len(parsedEvent.EventDataItems) >= 4 {
 		transferEvent = CrossChainTransferEvent{

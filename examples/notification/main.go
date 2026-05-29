@@ -88,10 +88,9 @@ func (h *EnterpriseNotifiedHandler) BuildMessage(
 
 	var event EnterpriseNotifiedEvent
 
-	// 优先使用 ParsedJSON（Solana 等链的解析结果）
-	if parsedEvent.ParsedJSON != nil {
-		data, _ := json.Marshal(parsedEvent.ParsedJSON)
-		if err := json.Unmarshal(data, &event); err != nil {
+	// 优先使用 RawData（Solana/Ethereum 等链的 JSON 解析结果）
+	if len(parsedEvent.RawData) > 0 {
+		if err := json.Unmarshal(parsedEvent.RawData, &event); err != nil {
 			return nil, fmt.Errorf("failed to parse enterprise notified event: %w", err)
 		}
 	} else if len(parsedEvent.EventDataItems) >= 5 {
@@ -175,9 +174,9 @@ func (h *FileNotifiedHandler) BuildMessage(
 
 	var event FileNotifiedEvent
 
-	if parsedEvent.ParsedJSON != nil {
-		data, _ := json.Marshal(parsedEvent.ParsedJSON)
-		if err := json.Unmarshal(data, &event); err != nil {
+	// 优先使用 RawData（Solana/Ethereum 等链的 JSON 解析结果）
+	if len(parsedEvent.RawData) > 0 {
+		if err := json.Unmarshal(parsedEvent.RawData, &event); err != nil {
 			return nil, fmt.Errorf("failed to parse file notified event: %w", err)
 		}
 	} else if len(parsedEvent.EventDataItems) >= 4 {
