@@ -188,19 +188,3 @@ type RouteTarget struct {
 	// Method 目标方法名
 	Method string `json:"method"`
 }
-
-// CrossChainTask 从 CrossChainMessage 转换为可靠性任务
-type CrossChainTask struct {
-	TaskID       string    `json:"taskId"`
-	MessageID    string    `json:"messageId"`
-	SourceChain  string    `json:"sourceChain"`
-	TargetChain  string    `json:"targetChain"`
-	ContractName string    `json:"contractName"`
-	Method       string    `json:"method"`
-	State        string    `json:"state"`
-	TxID         string    `json:"txId,omitempty"`
-	ErrorMsg     string    `json:"errorMsg,omitempty"`
-	RetryCount   int       `json:"retryCount"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-}
