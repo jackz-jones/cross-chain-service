@@ -1,45 +1,16 @@
 package event
 
 import (
+	"context"
 	"errors"
 	"testing"
-
-	"github.com/jackz-jones/cross-chain-service/internal/code"
 )
-
-func TestCheckWhitelist_EmptyMap_AllAddressesFail(t *testing.T) {
-	// 当前实现：空 map 导致所有地址返回 error
-	err := CheckWhitelist([]string{"0xaddr1", "0xaddr2"})
-	if err == nil {
-		t.Fatal("expected error for addresses not in empty whitelist")
-	}
-	// 验证错误信息包含地址和 "not in white list"
-	expectedSuffix := code.ErrMsgNotInWhiteList
-	if len(err.Error()) < len(expectedSuffix) {
-		t.Fatalf("error message too short: %s", err.Error())
-	}
-}
-
-func TestCheckWhitelist_EmptyAddressList(t *testing.T) {
-	// 空地址列表应该成功
-	err := CheckWhitelist([]string{})
-	if err != nil {
-		t.Fatalf("expected no error for empty address list, got: %v", err)
-	}
-}
-
-func TestNotifyFile_CurrentBehavior(t *testing.T) {
-	// 当前实现为空，总是返回 nil
-	err := NotifyFile(TestEventID, "0xaddr", 1)
-	if err != nil {
-		t.Fatalf("expected no error from NotifyFile stub, got: %v", err)
-	}
-}
 
 func TestSendCrossChainTx_Success(t *testing.T) {
 	mockClient := NewMockChainInteractive()
 
 	txId, err := SendCrossChainTx(
+		context.Background(),
 		TestChainTypeChainmaker, "contract1", "method1", nil,
 		0, true, 30, mockClient,
 	)
@@ -72,6 +43,7 @@ func TestSendCrossChainTx_GrpcError(t *testing.T) {
 	mockClient.CallContractResp = nil
 
 	_, err := SendCrossChainTx(
+		context.Background(),
 		TestChainTypeChainmaker, "contract1", "method1", nil,
 		0, true, 30, mockClient,
 	)
@@ -86,6 +58,7 @@ func TestSendCrossChainTx_NonSuccessCode(t *testing.T) {
 	mockClient.CallContractResp.Msg = "internal error"
 
 	_, err := SendCrossChainTx(
+		context.Background(),
 		TestChainTypeChainmaker, "contract1", "method1", nil,
 		0, true, 30, mockClient,
 	)

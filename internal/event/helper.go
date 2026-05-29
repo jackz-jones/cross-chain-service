@@ -3,7 +3,6 @@ package event
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/jackz-jones/cross-chain-service/internal/code"
 
@@ -11,39 +10,17 @@ import (
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
 )
 
-// CheckWhitelist 检查地址是否都在白名单
-func CheckWhitelist(addrList []string) error {
-
-	// TODO：收集白名单
-	whiteListMap := make(map[string]bool, 0)
-
-	// 检查每个地址是否都在白名单
-	for _, addr := range addrList {
-		if !whiteListMap[addr] {
-			return fmt.Errorf("%s %s", addr, code.ErrMsgNotInWhiteList)
-		}
-	}
-
-	// 检查白名单成功
-	return nil
-}
-
-// NotifyFile 通知文件
-func NotifyFile(id, address string, messageType int) error {
-
-	// TODO：发送文件通知
-
-	// 返回成功
-	return nil
-}
-
 // SendCrossChainTx 发送跨链交易
-func SendCrossChainTx(chainConfName, contractConfName, contractMethod string, kvs []*chainPb.KeyValuePair,
+func SendCrossChainTx(
+	ctx context.Context,
+	chainConfName, contractConfName, contractMethod string,
+	kvs []*chainPb.KeyValuePair,
 	methodType chainPb.MethodType, withSyncResult bool, txTimeout int64,
-	chainInteractiveServiceClient chaininteractive.ChainInteractive) (string, error) {
+	chainInteractiveServiceClient chaininteractive.ChainInteractive,
+) (string, error) {
 
 	// 发送跨链交易
-	txResp, err := chainInteractiveServiceClient.CallContract(context.Background(), &chaininteractive.CallContractRequest{
+	txResp, err := chainInteractiveServiceClient.CallContract(ctx, &chaininteractive.CallContractRequest{
 		RequestId: "cross-chain-service-call-contract",
 
 		// todo: 目标链可以由跨链服务
@@ -69,10 +46,3 @@ func SendCrossChainTx(chainConfName, contractConfName, contractMethod string, kv
 	// 返回成功
 	return txResp.Data.TxId, nil
 }
-
-// ==========================================
-// 时间相关辅助函数
-// ==========================================
-
-// Now 返回当前时间（便于测试中 mock）
-var Now = time.Now

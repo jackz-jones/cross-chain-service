@@ -2,14 +2,12 @@
 package event
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	chainCli "github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
-	commonEvent "github.com/jackz-jones/common/event"
 	"github.com/jackz-jones/cross-chain-service/internal/code"
-	"github.com/jackz-jones/cross-chain-service/internal/reliability"
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -17,18 +15,25 @@ import (
 // CrossChainExecutor 跨链交易执行器接口
 type CrossChainExecutor interface {
 	// Execute 执行跨链交易
+	// ctx: 上下文，用于超时控制和优雅退出
 	// targetChainName: 目标链名称
 	// targetContractName: 目标合约名称
 	// method: 调用方法
 	// kvs: 参数列表
 	// 返回交易 ID 和错误
-	Execute(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair) (string, error)
+	Execute(ctx context.Context,
+		targetChainName, targetContractName, method string,
+		kvs []*chainPb.KeyValuePair) (string, error)
 
 	// ExecuteWithCallback 执行跨链交易，失败时发送回调
 	// callbackMethod: 回调方法名
 	// callbackKvsBuilder: 构造回调参数的函数（接收错误信息）
-	ExecuteWithCallback(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
-		callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error)) (string, error)
+	ExecuteWithCallback(ctx context.Context,
+		targetChainName, targetContractName, method string,
+		kvs []*chainPb.KeyValuePair,
+		callbackMethod string,
+		callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
+	) (string, error)
 }
 
 // DefaultCrossChainExecutor 默认跨链交易执行器实现
@@ -54,90 +59,12 @@ func NewDefaultCrossChainExecutor(
 	}
 }
 
-// NewCrossChainExecutor 根据配置创建跨链交易执行器
-// 如果启用了可靠性配置（幂等性或重试），则创建 ReliableCrossChainExecutor
-// 否则创建默认的 DefaultCrossChainExecutor
-func NewCrossChainExecutor(
-	logger logx.Logger,
-	svcCtx *svc.ServiceContext,
-	crossTargetChainConf *chainCli.ChainAndContractName,
-	eventName string,
-) CrossChainExecutor {
-	rc := svcCtx.Config.ReliabilityConf
-	subConf := svcCtx.Config.SubscribeConf
-
-	// 如果启用了幂等性检查或重试机制，使用可靠执行器
-	if rc.EnableIdempotency || rc.EnableRetry {
-		// 创建共享的 Redis 适配器（幂等性检查和任务持久化复用同一连接）
-		commonRedis, err := commonEvent.NewRedisClient(
-			subConf.ConfType, subConf.RedisAddr,
-			subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
-		)
-		if err != nil {
-			logger.Errorf("[%s] failed to create redis client: %v", eventName, err)
-			return NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
-		}
-		redisAdapter := reliability.NewRedisAdapterFromCommon(commonRedis)
-
-		opts := []ReliableExecutorOption{}
-
-		// 配置幂等性检查
-		if rc.EnableIdempotency {
-			checker := reliability.NewRedisIdempotencyChecker(
-				redisAdapter,
-				"cross_chain:idempotent:",
-			)
-			idempotTTL := time.Duration(rc.IdempotencyTTL) * time.Second
-			if idempotTTL == 0 {
-				idempotTTL = 24 * time.Hour
-			}
-			opts = append(opts, WithIdempotency(checker, idempotTTL))
-		}
-
-		// 配置重试策略
-		if rc.EnableRetry {
-			maxRetries := rc.MaxRetries
-			if maxRetries == 0 {
-				maxRetries = 3
-			}
-			baseDelay := rc.RetryBaseDelay
-			if baseDelay == 0 {
-				baseDelay = 1000
-			}
-			maxDelay := rc.RetryMaxDelay
-			if maxDelay == 0 {
-				maxDelay = 30000
-			}
-			multiplier := rc.RetryMultiplier
-			if multiplier == 0 {
-				multiplier = 2.0
-			}
-			retryStrategy := reliability.NewRetryStrategy(&reliability.RetryConfig{
-				MaxRetries: maxRetries,
-				BaseDelay:  time.Duration(baseDelay) * time.Millisecond,
-				MaxDelay:   time.Duration(maxDelay) * time.Millisecond,
-				Multiplier: multiplier,
-			})
-			opts = append(opts, WithRetry(retryStrategy))
-		}
-
-		// 配置任务持久化（复用同一个 Redis 适配器）
-		taskStore := reliability.NewRedisTaskStore(redisAdapter, "cross_chain:task:", 7*24*time.Hour)
-		opts = append(opts, WithTaskStore(taskStore))
-
-		defaultExecutor := NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
-		return NewReliableCrossChainExecutor(defaultExecutor, logger, eventName, opts...)
-	}
-
-	// 默认使用基础执行器
-	return NewDefaultCrossChainExecutor(logger, svcCtx, crossTargetChainConf, eventName)
-}
-
 // Execute 执行跨链交易
 func (e *DefaultCrossChainExecutor) Execute(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
 	txId, err := SendCrossChainTx(
+		ctx,
 		targetChainName,
 		targetContractName,
 		method,
@@ -158,10 +85,10 @@ func (e *DefaultCrossChainExecutor) Execute(
 
 // ExecuteWithCallback 执行跨链交易，失败时发送回调
 func (e *DefaultCrossChainExecutor) ExecuteWithCallback(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {
-	txId, err := e.Execute(targetChainName, targetContractName, method, kvs)
+	txId, err := e.Execute(ctx, targetChainName, targetContractName, method, kvs)
 	if err != nil {
 		// 发送失败，尝试回调
 		if callbackKvsBuilder != nil {
@@ -170,6 +97,7 @@ func (e *DefaultCrossChainExecutor) ExecuteWithCallback(
 				e.logger.Errorf("[%s] %s: %v", e.eventName, code.ErrMsgCreateCallbackKvs, err2)
 			} else {
 				callBackTxId, err3 := SendCrossChainTx(
+					ctx,
 					targetChainName,
 					targetContractName,
 					callbackMethod,

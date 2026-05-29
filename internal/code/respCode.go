@@ -9,7 +9,7 @@ const (
 	Success RespCode = 200000
 )
 
-// 500000-599999 表示 cross-chain-service grpc 错误码
+// 600000-699999 表示 cross-chain-service grpc 错误码
 const (
 	ErrNewRedisClient RespCode = iota + 600000
 	ErrGetLatestBlockHeight
@@ -37,18 +37,14 @@ const (
 	ErrMsgInvalidAbi                      = "invalid abi"
 	ErrMsgSendSupervisionAuthorization    = "failed to send supervision authorization req"
 	ErrMsgExecuteSupervisionAuthorization = "failed to execute supervision authorization req"
-	ErrMsgNotInWhiteList                  = "not in white list"
-	ErrMsgCheckWhitelist                  = "failed to check whitelist"
 	ErrMsgSendNotifyRequestFile           = "failed to send notify request file req"
 	ErrMsgExecuteNotifyRequestFile        = "failed to execute notify request file req"
-	ErrMsgNotifyFile                      = "failed to notify file"
 	ErrMsgSendCallContract                = "failed to send call contract req"
 	ErrMsgExecuteCallContract             = "failed to execute call contract req"
 	ErrMsgSendCrossChainTx                = "failed to send cross chain tx"
 	ErrMsgJsonMarshal                     = "failed to json marshal"
 	ErrMsgCreateNotifyEnterpriseInfoKvs   = "failed to create notify enterprise info kvs"
 	ErrMsgHandlerCrossChain               = "failed to handler cross chain"
-	ErrMsgCreateNotifyFileInfoKvs         = "failed to create notify file info kvs"
 	ErrMsgCreateCrossChainMintKvs         = "failed to create cross chain mint kvs"
 	ErrMsgCreateUpdateCrossChainStatusKvs = "failed to create update cross chain status kvs"
 	ErrMsgCreateCallbackKvs               = "failed to create callback kvs"

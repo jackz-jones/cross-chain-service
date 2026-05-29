@@ -21,15 +21,3 @@ type GenericEventHandler interface {
 	// originalEvent: 原始事件（包含链名、合约类型等元数据）
 	BuildMessage(parsedEvent *adapter.ParsedEvent, originalEvent commonEvent.TradeGuardEvent) (*CrossChainMessage, error)
 }
-
-// EventHandlerRegistry 事件处理器注册表接口
-type EventHandlerRegistry interface {
-	// Register 注册事件处理器
-	Register(handler GenericEventHandler)
-
-	// Get 根据名称获取事件处理器
-	Get(name string) (GenericEventHandler, bool)
-
-	// GetAll 获取所有已注册的处理器
-	GetAll() map[string]GenericEventHandler
-}

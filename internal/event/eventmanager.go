@@ -51,9 +51,10 @@ type Manager struct {
 }
 
 // NewEventManager 实例化事件管理器
-func NewEventManager(svcCtx *svc.ServiceContext) *Manager {
+// ctx: 父 context，用于优雅退出时通知所有子协程停止
+func NewEventManager(ctx context.Context, svcCtx *svc.ServiceContext) *Manager {
 
-	// 初始化时间redis客户端
+	// 初始化事件 redis 客户端
 	client, err := event.NewRedisClient(svcCtx.Config.SubscribeConf.ConfType, svcCtx.Config.SubscribeConf.RedisAddr,
 		svcCtx.Config.SubscribeConf.RedisUserName, svcCtx.Config.SubscribeConf.RedisPassword,
 		svcCtx.Config.SubscribeConf.MasterName)
@@ -62,12 +63,12 @@ func NewEventManager(svcCtx *svc.ServiceContext) *Manager {
 	}
 
 	return &Manager{
-		eventCtx:    context.Background(),
+		eventCtx:    ctx,
 		svcCtx:      svcCtx,
 		redisClient: client,
 		routeTable:  make(RouteTable),
 		groupName:   defaultGroupName,
-		Logger:      logx.WithContext(context.Background()),
+		Logger:      logx.WithContext(ctx),
 	}
 }
 
@@ -77,9 +78,17 @@ func (e *Manager) Process() {
 	e.Logger.Infof("[event] start process event")
 	// 阻塞加载链服务配置信息
 	// 如果加载不出来，则3秒后重新尝试
-	// 直到正确获取链配置
+	// 直到正确获取链配置，或者 context 被取消
 	func() {
 		for {
+			// 检查 context 是否已取消
+			select {
+			case <-e.eventCtx.Done():
+				e.Logger.Info("[event] context cancelled, stopping chain config loading")
+				return
+			default:
+			}
+
 			if e.svcCtx.ChainInteractiveServiceClient == nil {
 				e.Logger.Error("[event] chain interactive client is nil")
 				time.Sleep(retryChainListInterval)
@@ -90,7 +99,7 @@ func (e *Manager) Process() {
 			req := &chainCli.GetAvailableChainAndContractNamesRequest{
 				RequestId: "cross-chain-service-query-chain-config",
 			}
-			resp, err := e.svcCtx.ChainInteractiveServiceClient.GetAvailableChainAndContractNames(context.Background(), req)
+			resp, err := e.svcCtx.ChainInteractiveServiceClient.GetAvailableChainAndContractNames(e.eventCtx, req)
 			if err != nil {
 				e.Logger.Errorf("failed to send GetAvailableChainAndContractNames req: %v", err)
 				time.Sleep(retryChainListInterval)
@@ -288,6 +297,7 @@ func (e *Manager) createGenericHandlers(
 
 	for name, genericHandler := range allHandlers {
 		adapter := &genericHandlerAdapter{
+			ctx:                  e.eventCtx,
 			svcCtx:               e.svcCtx,
 			logger:               e.Logger,
 			processor:            genericHandler,

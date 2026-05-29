@@ -1,4 +1,4 @@
-// Package mapping 事件-动作映射规则引擎
+// Package mapping 事件-动作映射规则引擎（预留扩展模块，当前未在主代码中启用）
 package mapping
 
 import (

@@ -2,7 +2,6 @@ package message
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -14,223 +13,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-// GenericExecutor 通用跨链消息执行器
-// 接受 CrossChainMessage，通过路由查找目标，调用适配器发送交易
-// 支持与现有可靠性机制（ReliableCrossChainExecutor）对接
-type GenericExecutor struct {
-	svcCtx *svc.ServiceContext
-	router *MessageRouter
-	logger logx.Logger
-}
-
-// NewGenericExecutor 创建通用执行器
-func NewGenericExecutor(svcCtx *svc.ServiceContext, router *MessageRouter, logger logx.Logger) *GenericExecutor {
-	return &GenericExecutor{
-		svcCtx: svcCtx,
-		router: router,
-		logger: logger,
-	}
-}
-
-// Execute 执行跨链消息
-// 根据消息路由找到目标链和合约，发送跨链交易
-func (e *GenericExecutor) Execute(msg *CrossChainMessage) (string, error) {
-	// 1. 路由查找
-	targets, err := e.router.Route(msg)
-	if err != nil {
-		return "", fmt.Errorf("route failed for message %s: %w", msg.MessageID, err)
-	}
-	if len(targets) == 0 {
-		e.logger.Infof("[generic-executor] message %s discarded (no route found)", msg.MessageID)
-		return "", nil
-	}
-
-	// 2. 目前仅支持单目标路由（第一个匹配）
-	target := targets[0]
-
-	// 3. 构建 KeyValuePair 参数
-	kvs, err := e.buildKvsFromPayload(msg.Payload)
-	if err != nil {
-		return "", fmt.Errorf("failed to build kvs from payload for message %s: %w", msg.MessageID, err)
-	}
-
-	// 4. 创建执行器并执行
-	executor := e.createExecutor(msg, target)
-	txId, err := executor.Execute(
-		target.TargetChain,
-		target.TargetContract,
-		target.Method,
-		kvs,
-	)
-	if err != nil {
-		// 执行失败，尝试回调
-		e.handleCallbackOnFailure(msg, target, err)
-		return "", err
-	}
-
-	e.logger.Infof("[generic-executor] message %s executed successfully, txId: %s", msg.MessageID, txId)
-	return txId, nil
-}
-
-// ExecuteWithCallback 执行跨链消息（带回调）
-func (e *GenericExecutor) ExecuteWithCallback(msg *CrossChainMessage) (string, error) {
-	// 1. 路由查找
-	targets, err := e.router.Route(msg)
-	if err != nil {
-		return "", fmt.Errorf("route failed for message %s: %w", msg.MessageID, err)
-	}
-	if len(targets) == 0 {
-		e.logger.Infof("[generic-executor] message %s discarded (no route found)", msg.MessageID)
-		return "", nil
-	}
-
-	target := targets[0]
-
-	// 2. 构建 KeyValuePair 参数
-	kvs, err := e.buildKvsFromPayload(msg.Payload)
-	if err != nil {
-		return "", fmt.Errorf("failed to build kvs from payload for message %s: %w", msg.MessageID, err)
-	}
-
-	// 3. 创建执行器
-	executor := e.createExecutor(msg, target)
-
-	// 4. 执行（带回调）
-	if msg.HasCallback() {
-		callbackKvsBuilder := func(errMsg string) ([]*chainPb.KeyValuePair, error) {
-			return e.buildCallbackKvs(msg, errMsg)
-		}
-		resultTxId, execErr := executor.ExecuteWithCallback(
-			target.TargetChain,
-			target.TargetContract,
-			target.Method,
-			kvs,
-			msg.CallbackMethod,
-			callbackKvsBuilder,
-		)
-		if execErr != nil {
-			return "", execErr
-		}
-		return resultTxId, nil
-	}
-
-	// 无回调，直接执行
-	resultTxId, execErr := executor.Execute(
-		target.TargetChain,
-		target.TargetContract,
-		target.Method,
-		kvs,
-	)
-	if execErr != nil {
-		return "", execErr
-	}
-
-	return resultTxId, nil
-}
-
-// createExecutor 根据配置创建跨链执行器
-// 如果启用了可靠性配置，则创建 ReliableCrossChainExecutor；否则创建 DefaultCrossChainExecutor
-func (e *GenericExecutor) createExecutor(msg *CrossChainMessage, target RouteTarget) CrossChainExecutor {
-	// 注意：这里暂时返回基于通用消息的执行器
-	// 后续可以通过 svcCtx 获取可靠性配置，创建对应的 ReliableCrossChainExecutor
-	return &genericInnerExecutor{
-		svcCtx: e.svcCtx,
-		logger: e.logger,
-		msgID:  msg.MessageID,
-	}
-}
-
-// handleCallbackOnFailure 执行失败时处理回调
-func (e *GenericExecutor) handleCallbackOnFailure(msg *CrossChainMessage, target RouteTarget, execErr error) {
-	if !msg.HasCallback() {
-		return
-	}
-
-	callbackKvs, err := e.buildCallbackKvs(msg, execErr.Error())
-	if err != nil {
-		e.logger.Errorf("[generic-executor] failed to build callback kvs for message %s: %v", msg.MessageID, err)
-		return
-	}
-
-	// 发送回调交易
-	txId, err := sendCrossChainTx(
-		target.TargetChain,
-		target.TargetContract,
-		msg.CallbackMethod,
-		callbackKvs,
-		e.svcCtx,
-	)
-	if err != nil {
-		e.logger.Errorf("[generic-executor] failed to send callback for message %s: %v", msg.MessageID, err)
-	} else {
-		e.logger.Infof("[generic-executor] callback sent for message %s, txId: %s", msg.MessageID, txId)
-	}
-}
-
-// buildKvsFromPayload 从 Payload 字节构建 KeyValuePair 列表
-// Payload 可以是 JSON 编码的 []*chainPb.KeyValuePair 或 map[string]interface{}
-func (e *GenericExecutor) buildKvsFromPayload(payload []byte) ([]*chainPb.KeyValuePair, error) {
-	if len(payload) == 0 {
-		return nil, nil
-	}
-
-	// 尝试解析为 KeyValuePair 列表
-	var kvs []*chainPb.KeyValuePair
-	if err := json.Unmarshal(payload, &kvs); err == nil {
-		return kvs, nil
-	}
-
-	// 尝试解析为 map 格式
-	var kvMap map[string]json.RawMessage
-	if err := json.Unmarshal(payload, &kvMap); err == nil {
-		for k, v := range kvMap {
-			kvs = append(kvs, &chainPb.KeyValuePair{
-				Key:   k,
-				Value: v,
-			})
-		}
-		return kvs, nil
-	}
-
-	// 兜底：整个 payload 作为一个 KeyValuePair
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   "payload",
-			Value: payload,
-		},
-	}, nil
-}
-
-// buildCallbackKvs 构建回调参数
-func (e *GenericExecutor) buildCallbackKvs(msg *CrossChainMessage, errMsg string) ([]*chainPb.KeyValuePair, error) {
-	if len(msg.CallbackPayload) > 0 {
-		return e.buildKvsFromPayload(msg.CallbackPayload)
-	}
-
-	// 默认回调参数：包含错误信息
-	type callbackData struct {
-		MessageID string `json:"messageId"`
-		Success   bool   `json:"success"`
-		ErrorMsg  string `json:"errorMsg,omitempty"`
-	}
-	data := callbackData{
-		MessageID: msg.MessageID,
-		Success:   errMsg == "",
-		ErrorMsg:  errMsg,
-	}
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal callback data: %w", err)
-	}
-
-	return []*chainPb.KeyValuePair{
-		{
-			Key:   "callbackInfo",
-			Value: dataBytes,
-		},
-	}, nil
-}
-
 // genericInnerExecutor 通用内部执行器，实现 CrossChainExecutor 接口
 type genericInnerExecutor struct {
 	svcCtx *svc.ServiceContext
@@ -240,9 +22,10 @@ type genericInnerExecutor struct {
 
 // Execute 执行跨链交易
 func (e *genericInnerExecutor) Execute(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
 	txId, err := sendCrossChainTx(
+		ctx,
 		targetChainName,
 		targetContractName,
 		method,
@@ -260,10 +43,10 @@ func (e *genericInnerExecutor) Execute(
 
 // ExecuteWithCallback 执行跨链交易（带回调）
 func (e *genericInnerExecutor) ExecuteWithCallback(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {
-	txId, err := e.Execute(targetChainName, targetContractName, method, kvs)
+	txId, err := e.Execute(ctx, targetChainName, targetContractName, method, kvs)
 	if err != nil {
 		// 执行失败，发送回调
 		if callbackKvsBuilder != nil {
@@ -272,6 +55,7 @@ func (e *genericInnerExecutor) ExecuteWithCallback(
 				e.logger.Errorf("[generic-executor] message %s: failed to build callback kvs: %v", e.msgID, err2)
 			} else {
 				callBackTxId, err3 := sendCrossChainTx(
+					ctx,
 					targetChainName,
 					targetContractName,
 					callbackMethod,
@@ -293,11 +77,12 @@ func (e *genericInnerExecutor) ExecuteWithCallback(
 
 // sendCrossChainTx 发送跨链交易（内部辅助函数）
 func sendCrossChainTx(
+	ctx context.Context,
 	chainConfName, contractConfName, contractMethod string,
 	kvs []*chainPb.KeyValuePair,
 	svcCtx *svc.ServiceContext,
 ) (string, error) {
-	txResp, err := svcCtx.ChainInteractiveServiceClient.CallContract(context.Background(), &chainCli.CallContractRequest{
+	txResp, err := svcCtx.ChainInteractiveServiceClient.CallContract(ctx, &chainCli.CallContractRequest{
 		RequestId:      "cross-chain-service-generic-call",
 		ChainName:      chainConfName,
 		ContractName:   contractConfName,
@@ -316,19 +101,6 @@ func sendCrossChainTx(
 	}
 
 	return txResp.Data.TxId, nil
-}
-
-// NewGenericExecutorWithReliability 创建带可靠性保障的通用执行器
-func NewGenericExecutorWithReliability(
-	svcCtx *svc.ServiceContext,
-	router *MessageRouter,
-	logger logx.Logger,
-) *GenericExecutor {
-	return &GenericExecutor{
-		svcCtx: svcCtx,
-		router: router,
-		logger: logger,
-	}
 }
 
 // CreateReliableGenericExecutor 创建带可靠性的通用内部执行器
@@ -437,9 +209,8 @@ type reliableGenericExecutor struct {
 
 // Execute 执行跨链交易（带可靠性保障）
 func (e *reliableGenericExecutor) Execute(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
-	ctx := context.Background()
 
 	// 1. 幂等性检查
 	eventKey := targetChainName + ":" + targetContractName + ":" + method
@@ -460,11 +231,11 @@ func (e *reliableGenericExecutor) Execute(
 	if e.retry != nil {
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
-			txId, err = e.inner.Execute(targetChainName, targetContractName, method, kvs)
+			txId, err = e.inner.Execute(ctx, targetChainName, targetContractName, method, kvs)
 			return err
 		})
 	} else {
-		txId, execErr = e.inner.Execute(targetChainName, targetContractName, method, kvs)
+		txId, execErr = e.inner.Execute(ctx, targetChainName, targetContractName, method, kvs)
 	}
 
 	// 3. 标记已处理
@@ -502,10 +273,9 @@ func (e *reliableGenericExecutor) Execute(
 
 // ExecuteWithCallback 执行跨链交易（带回调和可靠性保障）
 func (e *reliableGenericExecutor) ExecuteWithCallback(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {
-	ctx := context.Background()
 
 	// 1. 幂等性检查
 	eventKey := targetChainName + ":" + targetContractName + ":" + method
@@ -527,14 +297,14 @@ func (e *reliableGenericExecutor) ExecuteWithCallback(
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
 			txId, err = e.inner.ExecuteWithCallback(
-				targetChainName, targetContractName,
+				ctx, targetChainName, targetContractName,
 				method, kvs, callbackMethod, callbackKvsBuilder,
 			)
 			return err
 		})
 	} else {
 		txId, execErr = e.inner.ExecuteWithCallback(
-			targetChainName, targetContractName,
+			ctx, targetChainName, targetContractName,
 			method, kvs, callbackMethod, callbackKvsBuilder,
 		)
 	}
@@ -551,7 +321,13 @@ func (e *reliableGenericExecutor) ExecuteWithCallback(
 
 // CrossChainExecutor 跨链交易执行器接口
 type CrossChainExecutor interface {
-	Execute(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair) (string, error)
-	ExecuteWithCallback(targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
-		callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error)) (string, error)
+	Execute(ctx context.Context,
+		targetChainName, targetContractName, method string,
+		kvs []*chainPb.KeyValuePair) (string, error)
+	ExecuteWithCallback(ctx context.Context,
+		targetChainName, targetContractName, method string,
+		kvs []*chainPb.KeyValuePair,
+		callbackMethod string,
+		callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
+	) (string, error)
 }

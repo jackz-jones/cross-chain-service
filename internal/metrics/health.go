@@ -1,4 +1,4 @@
-// Package metrics 可观测性指标
+// Package metrics 可观测性指标（预留扩展模块，当前未在主代码中启用）
 package metrics
 
 import (

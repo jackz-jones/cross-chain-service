@@ -68,9 +68,8 @@ func NewReliableCrossChainExecutor(
 
 // Execute 执行跨链交易（带可靠性保障）
 func (e *ReliableCrossChainExecutor) Execute(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
-	ctx := context.Background()
 
 	// 1. 幂等性检查（如果配置了）
 	eventKey := targetChainName + ":" + targetContractName + ":" + method
@@ -93,13 +92,13 @@ func (e *ReliableCrossChainExecutor) Execute(
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
 			txId, err = e.inner.Execute(
-				targetChainName, targetContractName, method, kvs,
+				ctx, targetChainName, targetContractName, method, kvs,
 			)
 			return err
 		})
 	} else {
 		txId, execErr = e.inner.Execute(
-			targetChainName, targetContractName, method, kvs,
+			ctx, targetChainName, targetContractName, method, kvs,
 		)
 	}
 
@@ -138,10 +137,9 @@ func (e *ReliableCrossChainExecutor) Execute(
 
 // ExecuteWithCallback 执行跨链交易（带回调和可靠性保障）
 func (e *ReliableCrossChainExecutor) ExecuteWithCallback(
-	targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
+	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {
-	ctx := context.Background()
 
 	// 1. 幂等性检查
 	eventKey := targetChainName + ":" + targetContractName + ":" + method
@@ -163,14 +161,14 @@ func (e *ReliableCrossChainExecutor) ExecuteWithCallback(
 		execErr = e.retry.ExecuteWithRetryImmediate(func() error {
 			var err error
 			txId, err = e.inner.ExecuteWithCallback(
-				targetChainName, targetContractName,
+				ctx, targetChainName, targetContractName,
 				method, kvs, callbackMethod, callbackKvsBuilder,
 			)
 			return err
 		})
 	} else {
 		txId, execErr = e.inner.ExecuteWithCallback(
-			targetChainName, targetContractName,
+			ctx, targetChainName, targetContractName,
 			method, kvs, callbackMethod, callbackKvsBuilder,
 		)
 	}

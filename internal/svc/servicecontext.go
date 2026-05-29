@@ -1,6 +1,7 @@
 package svc
 
 import (
+	"context"
 	"time"
 
 	"github.com/jackz-jones/cross-chain-service/internal/config"
@@ -21,21 +22,30 @@ type ServiceContext struct {
 	GenericRouter interface{}
 }
 
-func NewServiceContext(c config.Config) *ServiceContext {
+func NewServiceContext(ctx context.Context, c config.Config) *ServiceContext {
 	svc := &ServiceContext{
 		Config: c,
 	}
 
 	// 初始化 chain-interactive-service 客户端
-	svc.newChainClient(c.ExternalGrpcConfs["chain-interactive-service"])
+	svc.newChainClient(ctx, c.ExternalGrpcConfs["chain-interactive-service"])
 
 	return svc
 }
 
 // newChainClient 初始化 chain-interactive-service 客户端
-func (svc *ServiceContext) newChainClient(c *config.ExternalGrpcConf) {
+// ctx 用于在服务退出时中断重试循环
+func (svc *ServiceContext) newChainClient(ctx context.Context, c *config.ExternalGrpcConf) {
 	go func() {
 		for {
+			// 检查 context 是否已取消
+			select {
+			case <-ctx.Done():
+				logx.Info("[svc] context cancelled, stopping chain client initialization")
+				return
+			default:
+			}
+
 			// 创建 grpc 客户端
 			grpcClient, err := grpc.CreateGRPCClient(c.CaCertFile, c.ClientCertFile, c.ClientKeyFile, c.DNS, c.Endpoint)
 			if err != nil {

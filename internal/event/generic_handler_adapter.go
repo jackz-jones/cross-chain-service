@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -17,6 +18,7 @@ import (
 
 // genericHandlerAdapter 适配器：将 GenericEventHandler 适配为 event.handler 接口
 type genericHandlerAdapter struct {
+	ctx       context.Context
 	svcCtx    *svc.ServiceContext
 	logger    logx.Logger
 	processor GenericEventProcessor
@@ -150,6 +152,7 @@ func (h *genericHandlerAdapter) executeMessage(msg *message.CrossChainMessage) e
 		}
 
 		_, err := executor.ExecuteWithCallback(
+			h.ctx,
 			msg.TargetChain,
 			targetContractName,
 			msg.Method,
@@ -162,6 +165,7 @@ func (h *genericHandlerAdapter) executeMessage(msg *message.CrossChainMessage) e
 
 	// 不带回调的执行
 	_, err := executor.Execute(
+		h.ctx,
 		msg.TargetChain,
 		targetContractName,
 		msg.Method,
