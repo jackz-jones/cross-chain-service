@@ -56,8 +56,6 @@ pre-commit: lint ut comment
 
 update-mod:
 	go get github.com/jackz-jones/blockchain-interactive-service@dev
-	go get github.com/jackz-jones/notification-contract-go@dev
-	go get github.com/jackz-jones/nft-contract-go@dev
 	go get github.com/ethereum/go-ethereum@v1.14.11
 	go get github.com/jackz-jones/common@dev
 	go mod tidy

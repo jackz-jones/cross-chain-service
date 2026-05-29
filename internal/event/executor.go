@@ -54,10 +54,10 @@ func NewDefaultCrossChainExecutor(
 	}
 }
 
-// newCrossChainExecutor 根据配置创建跨链交易执行器
+// NewCrossChainExecutor 根据配置创建跨链交易执行器
 // 如果启用了可靠性配置（幂等性或重试），则创建 ReliableCrossChainExecutor
 // 否则创建默认的 DefaultCrossChainExecutor
-func newCrossChainExecutor(
+func NewCrossChainExecutor(
 	logger logx.Logger,
 	svcCtx *svc.ServiceContext,
 	crossTargetChainConf *chainCli.ChainAndContractName,

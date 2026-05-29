@@ -1,9 +1,0 @@
-{
-  "contract_name": "nft-contract",
-  "contract_version": "1.0",
-  "topic": "CrossChainMint",
-  "tx_id": "test-tx-004",
-  "event_data": [
-    "{\"id\":\"nft-002\",\"owner\":\"0xowner002\",\"holder\":\"0xholder002\",\"originHash\":\"0xhash002\",\"createdAt\":\"2024-01-01T00:00:00Z\",\"data\":\"nft-metadata-2\",\"sender\":\"0xsender004\",\"tokenId\":\"token-002\"}"
-  ]
-}

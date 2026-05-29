@@ -219,27 +219,8 @@ func (e *Manager) listenChainEvent(ctx context.Context, chainConfig *chainCli.Ch
 	}
 
 	// 事件处理器集合
-	var eventHandlers []handler
-
-	if e.svcCtx.Config.GenericConf.EnableGenericMode {
-		// 通用框架模式：从配置读取插件处理器
-		eventHandlers = e.createGenericHandlers(chainConfig, primaryTarget)
-	} else {
-		// 兼容模式：使用旧版硬编码处理器
-		eventHandlers = []handler{
-			// 企业身份创建事件处理器
-			NewEnterpriseNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-
-			// 文件事件处理器
-			NewFileNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-
-			// 跨链转移事件处理器
-			NewCrossChainTransferEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-
-			// 跨链铸造事件处理器
-			NewCrossChainMintEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-		}
-	}
+	// 通用框架模式：从配置读取插件处理器
+	eventHandlers := e.createGenericHandlers(chainConfig, primaryTarget)
 
 	dispatcher := newHandlerDispatcher(eventHandlers, e.Logger)
 	contracts := chainConfig.GetContractDescs()
@@ -320,13 +301,7 @@ func (e *Manager) createGenericHandlers(
 	}
 
 	if len(handlers) == 0 {
-		e.Logger.Infof("[event] no generic handlers registered, falling back to legacy handlers")
-		return []handler{
-			NewEnterpriseNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-			NewFileNotifiedEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-			NewCrossChainTransferEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-			NewCrossChainMintEventHandler(e.Logger, e.svcCtx, chainConfig.ContractDescs, primaryTarget),
-		}
+		e.Logger.Infof("[event] no generic handlers registered")
 	}
 
 	return handlers

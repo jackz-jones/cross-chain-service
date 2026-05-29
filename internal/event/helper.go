@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/jackz-jones/cross-chain-service/internal/code"
-	"github.com/jackz-jones/cross-chain-service/internal/plugins/nft"
-	"github.com/jackz-jones/cross-chain-service/internal/plugins/notification"
 
 	"github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
@@ -70,42 +68,6 @@ func SendCrossChainTx(chainConfName, contractConfName, contractMethod string, kv
 
 	// 返回成功
 	return txResp.Data.TxId, nil
-}
-
-// ==========================================
-// 业务 KVS 构建函数（代理到插件模块）
-// 保留这些函数以兼容旧的事件处理器代码
-// ==========================================
-
-// CreateNotifyEnterpriseInfoKvs 构造调用合约方法 NotifyEnterpriseInfo 参数 kvs
-// 代理到 notification 插件模块
-func CreateNotifyEnterpriseInfoKvs(id, originHash, address, did string,
-	needCrossChain bool) ([]*chainPb.KeyValuePair, error) {
-	return notification.CreateNotifyEnterpriseInfoKvs(id, originHash, address, did, needCrossChain)
-}
-
-// CreateNotifyFileInfoKvs 构造调用合约方法 NotifyFileInfo 参数 kvs
-// 代理到 notification 插件模块
-func CreateNotifyFileInfoKvs(id, originHash string, msgType int, needCrossChain bool) ([]*chainPb.KeyValuePair, error) {
-	return notification.CreateNotifyFileInfoKvs(id, originHash, msgType, needCrossChain)
-}
-
-// CreateCrossChainMintKvs 构造调用合约方法 CrossChainMint 参数 kvs
-// 代理到 nft 插件模块
-func CreateCrossChainMintKvs(id, owner, holder, originHash, data string) ([]*chainPb.KeyValuePair, error) {
-	return nft.CreateCrossChainMintKvs(id, owner, holder, originHash, data)
-}
-
-// CreateUpdateCrossChainStatusKvs 构造调用合约方法 UpdateCrossChainStatus 参数 kvs
-// 代理到 nft 插件模块
-func CreateUpdateCrossChainStatusKvs(tokenId string, state int) ([]*chainPb.KeyValuePair, error) {
-	return nft.CreateUpdateCrossChainStatusKvs(tokenId, state)
-}
-
-// CreateCallbackKvs 构造调用合约方法 Callback 参数 kvs
-// 代理到 notification 插件模块
-func CreateCallbackKvs(id, originHash, msg string, errCode, msgType int) ([]*chainPb.KeyValuePair, error) {
-	return notification.CreateCallbackKvs(id, originHash, msg, errCode, msgType)
 }
 
 // ==========================================
