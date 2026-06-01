@@ -41,14 +41,9 @@ registry := message.GlobalHandlerRegistry()
 registry.Register(&MyEventHandler{})
 ```
 
-### 配置启用通用模式
+### 配置跨链服务
 
-在 `crosschain.yaml` 中启用通用模式：
-
-```yaml
-GenericConf:
-  EnableGenericMode: true
-```
+确保 `crosschain.yaml` 中配置了 `GenericConf` 相关选项（事件插件、路由规则等）。
 
 ## 运行示例
 

@@ -19,7 +19,7 @@ type Config struct {
 	// RouteConf 路由配置（可选，不配置则使用默认的全互联路由）
 	RouteConf []RouteRule `json:",optional"` //nolint:staticcheck
 
-	// GenericConf 通用框架配置（可选，启用后使用插件化事件处理器和三级路由）
+	// GenericConf 通用框架配置（插件化事件处理器和三级路由）
 	GenericConf GenericConf `json:",optional"` //nolint:staticcheck
 }
 
@@ -181,8 +181,6 @@ type DetailedRouteRule struct {
 
 // GenericConf 通用框架配置
 type GenericConf struct {
-	// EnableGenericMode 是否启用通用模式（false 则使用旧的硬编码处理器）
-	EnableGenericMode bool `json:",default=false"` //nolint:staticcheck
 
 	// EventPlugins 事件插件配置列表
 	EventPlugins []EventPluginConfig `json:",optional"` //nolint:staticcheck

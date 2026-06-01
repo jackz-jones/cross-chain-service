@@ -102,8 +102,8 @@ func (h *genericHandlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) e
 		return nil
 	}
 
-	// 7. 通过路由引擎填充目标链信息
-	if h.svcCtx.Config.GenericConf.EnableGenericMode && h.svcCtx.GenericRouter != nil {
+	// 通过路由引擎填充目标链信息
+	if h.svcCtx.GenericRouter != nil {
 		if router, ok := h.svcCtx.GenericRouter.(*message.MessageRouter); ok {
 			targets, routeErr := router.Route(msg)
 			if routeErr != nil {

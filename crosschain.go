@@ -46,13 +46,11 @@ func main() {
 
 	svcCtx := svc.NewServiceContext(rootCtx, c)
 
-	// 如果启用通用框架模式，初始化通用消息路由引擎
-	if c.GenericConf.EnableGenericMode {
-		router := message.NewMessageRouter(c.GenericConf.DetailedRoutes,
-			logx.WithContext(rootCtx),
-			c.GenericConf.UnroutedMessagePolicy)
-		svcCtx.GenericRouter = router
-	}
+	// 初始化通用消息路由引擎
+	router := message.NewMessageRouter(c.GenericConf.DetailedRoutes,
+		logx.WithContext(rootCtx),
+		c.GenericConf.UnroutedMessagePolicy)
+	svcCtx.GenericRouter = router
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		pb.RegisterCrossChainServer(grpcServer, server.NewCrossChainServer(svcCtx))
