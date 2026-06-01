@@ -32,16 +32,6 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("ReliabilityConf.RetryMultiplier must be >= 0")
 	}
 
-	// 校验路由配置
-	for i, route := range c.RouteConf {
-		if route.SourceChain == "" {
-			return fmt.Errorf("RouteConf[%d].SourceChain is required", i)
-		}
-		if len(route.TargetChains) == 0 {
-			return fmt.Errorf("RouteConf[%d].TargetChains must not be empty", i)
-		}
-	}
-
 	return nil
 }
 

@@ -13,15 +13,15 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-// genericInnerExecutor 通用内部执行器，实现 CrossChainExecutor 接口
-type genericInnerExecutor struct {
+// baseExecutor 基础执行器，实现 CrossChainExecutor 接口
+type baseExecutor struct {
 	svcCtx *svc.ServiceContext
 	logger logx.Logger
 	msgID  string
 }
 
 // Execute 执行跨链交易
-func (e *genericInnerExecutor) Execute(
+func (e *baseExecutor) Execute(
 	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
 	txId, err := sendCrossChainTx(
@@ -33,16 +33,16 @@ func (e *genericInnerExecutor) Execute(
 		e.svcCtx,
 	)
 	if err != nil {
-		e.logger.Errorf("[generic-executor] message %s: send tx failed for method %s: %v", e.msgID, method, err)
+		e.logger.Errorf("[executor] message %s: send tx failed for method %s: %v", e.msgID, method, err)
 		return "", fmt.Errorf("send cross chain tx failed for method %s: %w", method, err)
 	}
 
-	e.logger.Infof("[generic-executor] message %s: send tx success for method %s, txId: %s", e.msgID, method, txId)
+	e.logger.Infof("[executor] message %s: send tx success for method %s, txId: %s", e.msgID, method, txId)
 	return txId, nil
 }
 
 // ExecuteWithCallback 执行跨链交易（带回调）
-func (e *genericInnerExecutor) ExecuteWithCallback(
+func (e *baseExecutor) ExecuteWithCallback(
 	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {
@@ -52,7 +52,7 @@ func (e *genericInnerExecutor) ExecuteWithCallback(
 		if callbackKvsBuilder != nil {
 			callbackKvs, err2 := callbackKvsBuilder(err.Error())
 			if err2 != nil {
-				e.logger.Errorf("[generic-executor] message %s: failed to build callback kvs: %v", e.msgID, err2)
+				e.logger.Errorf("[executor] message %s: failed to build callback kvs: %v", e.msgID, err2)
 			} else {
 				callBackTxId, err3 := sendCrossChainTx(
 					ctx,
@@ -63,9 +63,9 @@ func (e *genericInnerExecutor) ExecuteWithCallback(
 					e.svcCtx,
 				)
 				if err3 != nil {
-					e.logger.Errorf("[generic-executor] message %s: failed to send callback tx: %v", e.msgID, err3)
+					e.logger.Errorf("[executor] message %s: failed to send callback tx: %v", e.msgID, err3)
 				} else {
-					e.logger.Infof("[generic-executor] message %s: callback tx sent, txId: %s", e.msgID, callBackTxId)
+					e.logger.Infof("[executor] message %s: callback tx sent, txId: %s", e.msgID, callBackTxId)
 				}
 			}
 		}
@@ -83,7 +83,7 @@ func sendCrossChainTx(
 	svcCtx *svc.ServiceContext,
 ) (string, error) {
 	txResp, err := svcCtx.ChainInteractiveServiceClient.CallContract(ctx, &chainCli.CallContractRequest{
-		RequestId:      "cross-chain-service-generic-call",
+		RequestId:      "cross-chain-service-call",
 		ChainName:      chainConfName,
 		ContractName:   contractConfName,
 		ContractMethod: contractMethod,
@@ -103,9 +103,9 @@ func sendCrossChainTx(
 	return txResp.Data.TxId, nil
 }
 
-// CreateReliableGenericExecutor 创建带可靠性的通用内部执行器
+// CreateReliableExecutor 创建带可靠性的执行器
 // 在 message 包内自行实现可靠性逻辑，避免对 event 包的循环依赖
-func CreateReliableGenericExecutor(
+func CreateReliableExecutor(
 	svcCtx *svc.ServiceContext,
 	logger logx.Logger,
 	msgID string,
@@ -115,7 +115,7 @@ func CreateReliableGenericExecutor(
 
 	// 如果未启用可靠性配置，返回基础执行器
 	if !rc.EnableIdempotency && !rc.EnableRetry {
-		return &genericInnerExecutor{
+		return &baseExecutor{
 			svcCtx: svcCtx,
 			logger: logger,
 			msgID:  msgID,
@@ -128,8 +128,8 @@ func CreateReliableGenericExecutor(
 		subConf.RedisUserName, subConf.RedisPassword, subConf.MasterName,
 	)
 	if err != nil {
-		logger.Errorf("[generic-executor] failed to create redis client: %v", err)
-		return &genericInnerExecutor{
+		logger.Errorf("[executor] failed to create redis client: %v", err)
+		return &baseExecutor{
 			svcCtx: svcCtx,
 			logger: logger,
 			msgID:  msgID,
@@ -178,13 +178,13 @@ func CreateReliableGenericExecutor(
 
 	taskStore = reliability.NewRedisTaskStore(redisAdapter, "cross_chain:task:", 7*24*time.Hour)
 
-	inner := &genericInnerExecutor{
+	inner := &baseExecutor{
 		svcCtx: svcCtx,
 		logger: logger,
 		msgID:  msgID,
 	}
 
-	return &reliableGenericExecutor{
+	return &reliableExecutor{
 		inner:       inner,
 		idempotency: idempotChecker,
 		taskStore:   taskStore,
@@ -195,9 +195,9 @@ func CreateReliableGenericExecutor(
 	}
 }
 
-// reliableGenericExecutor 可靠的通用跨链交易执行器
+// reliableExecutor 可靠的跨链交易执行器
 // 在 message 包中实现，避免对 event 包的循环依赖
-type reliableGenericExecutor struct {
+type reliableExecutor struct {
 	inner       CrossChainExecutor
 	idempotency reliability.IdempotencyChecker
 	taskStore   reliability.TaskStore
@@ -208,7 +208,7 @@ type reliableGenericExecutor struct {
 }
 
 // Execute 执行跨链交易（带可靠性保障）
-func (e *reliableGenericExecutor) Execute(
+func (e *reliableExecutor) Execute(
 	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 ) (string, error) {
 
@@ -272,7 +272,7 @@ func (e *reliableGenericExecutor) Execute(
 }
 
 // ExecuteWithCallback 执行跨链交易（带回调和可靠性保障）
-func (e *reliableGenericExecutor) ExecuteWithCallback(
+func (e *reliableExecutor) ExecuteWithCallback(
 	ctx context.Context, targetChainName, targetContractName, method string, kvs []*chainPb.KeyValuePair,
 	callbackMethod string, callbackKvsBuilder func(errMsg string) ([]*chainPb.KeyValuePair, error),
 ) (string, error) {

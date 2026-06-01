@@ -17,9 +17,9 @@ type ServiceContext struct {
 	// ChainInteractiveServiceClient 链交互服务客户端
 	ChainInteractiveServiceClient chaininteractive.ChainInteractive
 
-	// GenericRouter 通用消息路由引擎（通用框架模式启用时使用）
+	// Router 消息路由引擎
 	// 注意：为避免循环导入，这里使用 interface{} 类型，实际类型为 *message.MessageRouter
-	GenericRouter interface{}
+	Router interface{}
 }
 
 func NewServiceContext(ctx context.Context, c config.Config) *ServiceContext {

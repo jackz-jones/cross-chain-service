@@ -16,12 +16,12 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-// genericHandlerAdapter 适配器：将 GenericEventHandler 适配为 event.handler 接口
-type genericHandlerAdapter struct {
+// handlerAdapter 适配器：将 GenericEventHandler 适配为 event.handler 接口
+type handlerAdapter struct {
 	ctx       context.Context
 	svcCtx    *svc.ServiceContext
 	logger    logx.Logger
-	processor GenericEventProcessor
+	processor message.GenericEventHandler
 	registry  *adapter.Registry
 
 	// 当前链下的合约配置
@@ -31,28 +31,13 @@ type genericHandlerAdapter struct {
 	crossTargetChainConf *chainCli.ChainAndContractName
 }
 
-// GenericEventProcessor 通用事件处理器接口（适配层）
-type GenericEventProcessor interface {
-	// Name 返回处理器名称（事件名）
-	Name() string
-
-	// RequiredEventDataLength 返回 Chainmaker 事件数据所需的最小长度
-	RequiredEventDataLength() int
-
-	// BuildMessage 构建跨链消息
-	BuildMessage(
-		parsedEvent *adapter.ParsedEvent,
-		originalEvent commonEvent.TradeGuardEvent,
-	) (*message.CrossChainMessage, error)
-}
-
 // eventName 实现 handler 接口
-func (h *genericHandlerAdapter) eventName() string {
+func (h *handlerAdapter) eventName() string {
 	return h.processor.Name()
 }
 
 // handleEvent 实现 handler 接口
-func (h *genericHandlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) error {
+func (h *handlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) error {
 	h.logger.Infof("[%s] start to handle event (generic): %#v", h.eventName(), event)
 
 	// 1. 事件名校验
@@ -103,8 +88,8 @@ func (h *genericHandlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) e
 	}
 
 	// 通过路由引擎填充目标链信息
-	if h.svcCtx.GenericRouter != nil {
-		if router, ok := h.svcCtx.GenericRouter.(*message.MessageRouter); ok {
+	if h.svcCtx.Router != nil {
+		if router, ok := h.svcCtx.Router.(*message.MessageRouter); ok {
 			targets, routeErr := router.Route(msg)
 			if routeErr != nil {
 				h.logger.Errorf("[%s] route message error: %v", h.eventName(), routeErr)
@@ -122,7 +107,7 @@ func (h *genericHandlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) e
 }
 
 // executeMessage 执行跨链消息
-func (h *genericHandlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
+func (h *handlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
 	// 从 Payload 反序列化出 kvs
 	var kvs []*chainPb.KeyValuePair
 	if err := json.Unmarshal(msg.Payload, &kvs); err != nil {
@@ -135,8 +120,8 @@ func (h *genericHandlerAdapter) executeMessage(msg *message.CrossChainMessage) e
 		targetContractName = h.GetTargetContractName(msg.SourceContract)
 	}
 
-	// 创建通用执行器
-	executor := message.CreateReliableGenericExecutor(h.svcCtx, h.logger, msg.MessageID)
+	// 创建执行器
+	executor := message.CreateReliableExecutor(h.svcCtx, h.logger, msg.MessageID)
 
 	if msg.HasCallback() {
 		// 带回调的执行
@@ -175,7 +160,7 @@ func (h *genericHandlerAdapter) executeMessage(msg *message.CrossChainMessage) e
 }
 
 // GetTargetContractName 根据合约类型获取目标链合约名称
-func (h *genericHandlerAdapter) GetTargetContractName(contractType string) string {
+func (h *handlerAdapter) GetTargetContractName(contractType string) string {
 	for _, contractConf := range h.crossTargetChainConf.ContractDescs {
 		if contractConf.ContractType.String() == contractType {
 			return contractConf.ContractName

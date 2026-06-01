@@ -43,7 +43,7 @@ registry.Register(&MyEventHandler{})
 
 ### 配置跨链服务
 
-确保 `crosschain.yaml` 中配置了 `GenericConf` 相关选项（事件插件、路由规则等）。
+确保 `crosschain.yaml` 中配置了 `RouteConf` 相关选项（事件插件、路由规则等）。
 
 ## 运行示例
 

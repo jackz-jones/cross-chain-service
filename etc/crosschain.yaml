@@ -110,35 +110,13 @@ SendTxConf:
   # 发送交易超时时间,单位：s
   TxTimeout: 60
 
-# 通用框架配置
-GenericConf:
+# 路由框架配置
+RouteConf:
   # 超时检查间隔（秒）
   TimeoutCheckInterval: 30
   # 路由未找到时的策略：discard（丢弃）/ retry（重试）
   UnroutedMessagePolicy: discard
-  # 事件插件配置列表
-  EventPlugins:
-    - EventName: "CrossChainMint"
-      HandlerType: "cross_chain_mint"
-      SourceContractType: "nft"
-      TargetContractType: "nft"
-      Enabled: true
-    - EventName: "CrossChainTransfer"
-      HandlerType: "cross_chain_transfer"
-      SourceContractType: "nft"
-      TargetContractType: "nft"
-      Enabled: true
-    - EventName: "EnterpriseNotified"
-      HandlerType: "enterprise_notified"
-      SourceContractType: "notification"
-      TargetContractType: "notification"
-      Enabled: true
-    - EventName: "FileNotified"
-      HandlerType: "file_notified"
-      SourceContractType: "notification"
-      TargetContractType: "notification"
-      Enabled: true
-  # 详细路由规则（支持三级路由，优先级高于 RouteConf）
+  # 详细路由规则（支持三级路由）
   # DetailedRoutes:
   #   # 链级别路由
   #   - Level: chain

@@ -21,7 +21,7 @@ import (
 
 var (
 	// defaultGroupName 订阅组信息
-	defaultGroupName = "cross-chain-service" // 电子提单平台
+	defaultGroupName = "cross-chain-service"
 
 	// consumer 消费者,通过配置不相同的consumer，支持负载
 	defaultConsumer = "cross-chain-service-consumer"
@@ -143,14 +143,7 @@ func (e *Manager) Process() {
 
 // buildRouteTable 构建路由表
 // 默认策略：每条链的跨链目标是除自身外的所有其他链
-// 支持未来通过配置文件自定义路由规则
 func (e *Manager) buildRouteTable() {
-	// 检查是否有自定义路由配置
-	if len(e.svcCtx.Config.RouteConf) > 0 {
-		e.buildCustomRouteTable()
-		return
-	}
-
 	// 默认路由：每条链 → 其他所有链
 	for _, source := range e.chainConfig {
 		var targets []*chainCli.ChainAndContractName
@@ -160,26 +153,6 @@ func (e *Manager) buildRouteTable() {
 			}
 		}
 		e.routeTable[source.ChainName] = targets
-	}
-}
-
-// buildCustomRouteTable 根据配置构建自定义路由表
-func (e *Manager) buildCustomRouteTable() {
-	chainMap := make(map[string]*chainCli.ChainAndContractName)
-	for _, cc := range e.chainConfig {
-		chainMap[cc.ChainName] = cc
-	}
-
-	for _, route := range e.svcCtx.Config.RouteConf {
-		var targets []*chainCli.ChainAndContractName
-		for _, targetName := range route.TargetChains {
-			if target, ok := chainMap[targetName]; ok {
-				targets = append(targets, target)
-			} else {
-				e.Logger.Errorf("[event] route config: target chain '%s' not found in available chains", targetName)
-			}
-		}
-		e.routeTable[route.SourceChain] = targets
 	}
 }
 
@@ -227,9 +200,8 @@ func (e *Manager) listenChainEvent(ctx context.Context, chainConfig *chainCli.Ch
 			chainConfig.ChainName, len(targetChains), primaryTarget.ChainName)
 	}
 
-	// 事件处理器集合
 	// 通用框架模式：从配置读取插件处理器
-	eventHandlers := e.createGenericHandlers(chainConfig, primaryTarget)
+	eventHandlers := e.createHandlers(chainConfig, primaryTarget)
 
 	dispatcher := newHandlerDispatcher(eventHandlers, e.Logger)
 	contracts := chainConfig.GetContractDescs()
@@ -284,8 +256,8 @@ func (rt RouteTable) String() string {
 	return sb.String()
 }
 
-// createGenericHandlers 创建通用框架模式的事件处理器
-func (e *Manager) createGenericHandlers(
+// createHandlers 创建事件处理器
+func (e *Manager) createHandlers(
 	chainConfig *chainCli.ChainAndContractName,
 	primaryTarget *chainCli.ChainAndContractName,
 ) []handler {
@@ -296,7 +268,7 @@ func (e *Manager) createGenericHandlers(
 	allHandlers := registry.GetAll()
 
 	for name, genericHandler := range allHandlers {
-		adapter := &genericHandlerAdapter{
+		adp := &handlerAdapter{
 			ctx:                  e.eventCtx,
 			svcCtx:               e.svcCtx,
 			logger:               e.Logger,
@@ -306,12 +278,12 @@ func (e *Manager) createGenericHandlers(
 			crossTargetChainConf: primaryTarget,
 		}
 		// 使用通用处理器的事件名作为 handler 的事件名
-		handlers = append(handlers, adapter)
-		e.Logger.Infof("[event] registered generic handler: %s", name)
+		handlers = append(handlers, adp)
+		e.Logger.Infof("[event] registered handler: %s", name)
 	}
 
 	if len(handlers) == 0 {
-		e.Logger.Infof("[event] no generic handlers registered")
+		e.Logger.Infof("[event] no handlers registered")
 	}
 
 	return handlers

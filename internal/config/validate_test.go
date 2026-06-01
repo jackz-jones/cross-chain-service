@@ -75,22 +75,6 @@ func TestConfig_Validate_InvalidRetryConfig(t *testing.T) {
 	}
 }
 
-func TestConfig_Validate_InvalidRouteConf(t *testing.T) {
-	c := &Config{}
-	c.SubscribeConf.RedisAddr = testRedisAddr
-	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: testGrpcEndpoint},
-	}
-	c.RouteConf = []RouteRule{
-		{SourceChain: "", TargetChains: []string{"chain2"}},
-	}
-
-	err := c.Validate()
-	if err == nil {
-		t.Fatal("expected error for empty SourceChain")
-	}
-}
-
 func TestConfig_ApplyEnvOverrides(t *testing.T) {
 	c := &Config{}
 

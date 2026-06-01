@@ -17,10 +17,10 @@ import (
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	pb "github.com/jackz-jones/cross-chain-service/pb"
 
+	commonGrpc "github.com/jackz-jones/common/grpc"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
-	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -46,19 +46,28 @@ func main() {
 
 	svcCtx := svc.NewServiceContext(rootCtx, c)
 
-	// 初始化通用消息路由引擎
-	router := message.NewMessageRouter(c.GenericConf.DetailedRoutes,
+	// 初始化消息路由引擎
+	router := message.NewMessageRouter(c.RouteConf.DetailedRoutes,
 		logx.WithContext(rootCtx),
-		c.GenericConf.UnroutedMessagePolicy)
-	svcCtx.GenericRouter = router
+		c.RouteConf.UnroutedMessagePolicy)
+	svcCtx.Router = router
 
-	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	// 初始化 grpc 服务注册器
+	register := func(grpcServer *grpc.Server) {
 		pb.RegisterCrossChainServer(grpcServer, server.NewCrossChainServer(svcCtx))
 
 		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
 		}
-	})
+	}
+
+	// 创建 grpc 服务
+	s, err := commonGrpc.CreateGRPCServer(c.RpcServerConf, register, c.GrpcConf.CaCertFile, c.GrpcConf.ServerCertFile,
+		c.GrpcConf.ServerKeyFile, c.GrpcConf.MaxRecvMsgSize, c.GrpcConf.MaxSendMsgSize)
+	if err != nil {
+		panic(fmt.Errorf("failed to CreateGRPCServer,error: %v", err))
+	}
+
 	defer s.Stop()
 
 	// 异步启动事件处理器，传递根 context

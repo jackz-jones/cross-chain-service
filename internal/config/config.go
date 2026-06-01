@@ -16,11 +16,8 @@ type Config struct {
 	// ReliabilityConf 可靠性配置（可选）
 	ReliabilityConf ReliabilityConf `json:",optional"` //nolint:staticcheck
 
-	// RouteConf 路由配置（可选，不配置则使用默认的全互联路由）
-	RouteConf []RouteRule `json:",optional"` //nolint:staticcheck
-
-	// GenericConf 通用框架配置（插件化事件处理器和三级路由）
-	GenericConf GenericConf `json:",optional"` //nolint:staticcheck
+	// RouteConf 路由框架配置（插件化事件处理器和三级路由）
+	RouteConf RouteConf `json:",optional"` //nolint:staticcheck
 }
 
 // GrpcConf contain all config items for grpc server initiation
@@ -107,41 +104,6 @@ type ReliabilityConf struct {
 	RetryMultiplier float64 `json:",optional"` //nolint:staticcheck
 }
 
-// RouteRule 路由规则（链级别，兼容旧配置）
-type RouteRule struct {
-	// SourceChain 源链名称
-	SourceChain string
-
-	// TargetChains 目标链名称列表
-	TargetChains []string
-}
-
-// EventPluginConfig 事件插件配置
-// 用于声明式注册事件处理器，无需修改核心代码
-type EventPluginConfig struct {
-	// EventName 事件名称（用于路由匹配，对应合约事件名）
-	EventName string
-
-	// HandlerType 处理器类型名称（对应内置处理器注册名）
-	// 例如："cross_chain_mint"、"enterprise_notified"
-	HandlerType string
-
-	// SourceContractType 源合约类型（用于事件过滤）
-	SourceContractType string `json:",optional"` //nolint:staticcheck
-
-	// SourceEventName 源事件名称（仅事件级别需要）
-	SourceEventName string `json:",optional"` //nolint:staticcheck
-
-	// TargetContractType 目标合约类型（用于查找目标合约名称）
-	TargetContractType string `json:",optional"` //nolint:staticcheck
-
-	// TargetMethod 目标方法名（仅事件级别需要）
-	TargetMethod string `json:",optional"` //nolint:staticcheck
-
-	// Enabled 是否启用
-	Enabled bool `json:",default=true"` //nolint:staticcheck
-}
-
 // RouteLevelType 路由级别类型
 type RouteLevelType string
 
@@ -179,13 +141,10 @@ type DetailedRouteRule struct {
 	TargetMethod string `json:",optional"` //nolint:staticcheck
 }
 
-// GenericConf 通用框架配置
-type GenericConf struct {
+// RouteConf 路由框架配置
+type RouteConf struct {
 
-	// EventPlugins 事件插件配置列表
-	EventPlugins []EventPluginConfig `json:",optional"` //nolint:staticcheck
-
-	// DetailedRoutes 详细路由规则（支持三级路由，优先级高于旧的 RouteConf）
+	// DetailedRoutes 详细路由规则（支持三级路由）
 	DetailedRoutes []DetailedRouteRule `json:",optional"` //nolint:staticcheck
 
 	// TimeoutCheckInterval 超时检查间隔（秒），默认 30
