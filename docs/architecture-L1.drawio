@@ -1,0 +1,178 @@
+<mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- 标题 -->
+    <mxCell id="title" value="Cross-Chain Platform 整体技术架构" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#1A237E;" vertex="1" parent="1">
+      <mxGeometry x="300" y="15" width="350" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="subtitle" value="L1 整体架构 · 面向 CTO / 总监 / 新员工" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="340" y="45" width="270" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- 外部系统层 (黄色边界) -->
+    <mxCell id="ext_layer" value="外部系统 (External Systems)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#F57F17;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="75" width="820" height="85" as="geometry"/>
+    </mxCell>
+    <mxCell id="dapp" value="DApp\n(去中心化应用)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="120" y="98" width="140" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="admin" value="管理后台\n(运营平台)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="350" y="98" width="140" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="ext_chains" value="外部区块链\n(需跨链交互)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="580" y="98" width="140" height="42" as="geometry"/>
+    </mxCell>
+
+    <!-- 服务层 (绿色业务) -->
+    <mxCell id="svc_layer" value="服务层 (Services)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#1B5E20;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="180" width="820" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="chain_interactive" value="Chain-Interactive\nService\n(链交互服务)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="200" width="160" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="cross_chain" value="Cross-Chain\nService\n(跨链服务)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388E3C;strokeColor=#1B5E20;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="310" y="200" width="160" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="supervision" value="Supervision\nService\n(监管服务)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="560" y="200" width="140" height="55" as="geometry"/>
+    </mxCell>
+    <mxCell id="file_service" value="File Service\n(文件服务)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="740" y="205" width="100" height="45" as="geometry"/>
+    </mxCell>
+
+    <!-- 基础设施层 (蓝色) -->
+    <mxCell id="infra_layer" value="基础设施层 (Infrastructure)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#0D47A1;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="290" width="820" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="redis_stream" value="Redis Stream\n(事件总线)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=6;fillColor=#1976D2;strokeColor=#0D47A1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="150" y="305" width="140" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="redis_cache" value="Redis\n(缓存/幂等/任务)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=6;fillColor=#1976D2;strokeColor=#0D47A1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="350" y="305" width="140" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="grpc_label" value="gRPC (服务间通信)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#2E7D32;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="550" y="310" width="120" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="mysql" value="MySQL\n(业务数据)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=6;fillColor=#1976D2;strokeColor=#0D47A1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="700" y="305" width="120" height="50" as="geometry"/>
+    </mxCell>
+
+    <!-- 区块链网络层 (黄色边界) -->
+    <mxCell id="blockchain_layer" value="区块链网络 (Blockchain Networks)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#F57F17;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="390" width="520" height="85" as="geometry"/>
+    </mxCell>
+    <mxCell id="ethereum" value="Ethereum\n(以太坊)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="410" width="110" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="chainmaker" value="ChainMaker\n(长安链)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="230" y="410" width="110" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="solana" value="Solana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="380" y="410" width="110" height="42" as="geometry"/>
+    </mxCell>
+
+    <!-- 支撑平面 (红色竖井，右侧独立) -->
+    <mxCell id="support_bg" value="支撑平面 (Observability)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#B71C1C;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="880" y="180" width="180" height="295" as="geometry"/>
+    </mxCell>
+    <mxCell id="jaeger" value="Jaeger\n(链路追踪)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="210" width="120" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="prometheus" value="Prometheus\n(监控指标)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="260" width="120" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="logging" value="日志系统\n(结构化日志)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="310" width="120" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="health_check" value="Health Check\n(健康检查)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="360" width="120" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="config_center" value="配置中心\n(远程配置)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="410" width="120" height="35" as="geometry"/>
+    </mxCell>
+
+    <!-- 连线：DApp → Chain-Interactive (同步 gRPC) -->
+    <mxCell id="edge_dapp_ci" value="gRPC" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="dapp" target="chain_interactive">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：管理后台 → Supervision (同步 gRPC) -->
+    <mxCell id="edge_admin_sup" value="gRPC" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="admin" target="supervision">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Chain-Interactive → Redis Stream (异步发布事件) -->
+    <mxCell id="edge_ci_redis" value="发布事件" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=0.5;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="chain_interactive" target="redis_stream">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Redis Stream → Cross-Chain (异步订阅事件) -->
+    <mxCell id="edge_redis_cc" value="订阅事件" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=0.7;exitY=0;entryX=0.3;entryY=1;" edge="1" parent="1" source="redis_stream" target="cross_chain">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Cross-Chain → Chain-Interactive (gRPC 发送交易) -->
+    <mxCell id="edge_cc_ci" value="gRPC 发送交易" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="cross_chain" target="chain_interactive">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Cross-Chain → 区块链 (RPC/SDK 双向) -->
+    <mxCell id="edge_cc_chain" value="RPC / SDK" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;startArrow=classic;strokeColor=#F9A825;fontColor=#F57F17;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="cross_chain" target="ethereum">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Cross-Chain → Redis Cache (同步读写) -->
+    <mxCell id="edge_cc_redis" value="读写" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="cross_chain" target="redis_cache">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Cross-Chain → MySQL (同步读写) -->
+    <mxCell id="edge_cc_mysql" value="读写" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="cross_chain" target="mysql">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Supervision → File Service (同步 gRPC) -->
+    <mxCell id="edge_sup_file" value="gRPC" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#2E7D32;fontSize=9;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="supervision" target="file_service">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 连线：Chain-Interactive ↔ 区块链 (RPC/SDK 双向) -->
+    <mxCell id="edge_ci_eth" value="RPC/SDK" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;startArrow=classic;strokeColor=#F9A825;fontColor=#F57F17;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="chain_interactive" target="chainmaker">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="160" y="370"/>
+          <mxPoint x="285" y="370"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <!-- 连线：所有服务 → 支撑平面 (虚线，采集/上报) -->
+    <mxCell id="edge_svc_jaeger" value="" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;strokeWidth=1;dashed=1;dashPattern=4 4;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="cross_chain" target="jaeger">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- 图例 -->
+    <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#BDBDBD;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="500" width="820" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_title" value="图例与数据流说明" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+      <mxGeometry x="60" y="505" width="120" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_l1" value="—— 实线 = 同步调用 (gRPC/函数调用)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="528" width="250" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_l2" value="- - - 虚线 = 异步消息 (Redis Stream Pub/Sub)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="548" width="300" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_l3" value="◀——▶ 双向箭头 = 双向通信 (区块链节点交互)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="568" width="310" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c1" value="🟢 绿色 = 核心业务逻辑组件" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="528" width="180" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c2" value="🔵 蓝色 = 基础设施 (Redis/MySQL)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="548" width="220" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c3" value="🟡 黄色 = 边界组件 (区块链/外部系统)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="568" width="240" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c4" value="🔴 红色 = 支撑平面 (可观测性)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="588" width="210" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_flow" value="核心数据流: 区块链 ↔ Chain-Interactive → Redis Stream → Cross-Chain Service → Chain-Interactive → 目标链" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#1B5E20;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="590" width="580" height="20" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

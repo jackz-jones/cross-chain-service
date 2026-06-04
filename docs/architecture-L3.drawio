@@ -1,0 +1,202 @@
+<mxfile host="drawio-plugin" modified="2026-06-04T10:28:28.018Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36" version="22.1.22" etag="HRk30R-0jazb4OzHwRwu" type="embed">
+  <diagram id="uzEuV1EqXFe5U568ZFFf" name="Page-1">
+    <mxGraphModel dx="1331" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Cross-Chain Service 技术架构图" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#1A237E;" parent="1" vertex="1">
+          <mxGeometry x="300" y="15" width="300" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="L3 应用粒度 · 面向开发工程师 / 测试工程师" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="310" y="45" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer1_bg" value="接入层 (External Access)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#F57F17;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="40" y="70" width="820" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="ethereum" value="Ethereum" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="95" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="chainmaker" value="ChainMaker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="230" y="95" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="solana" value="Solana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="380" y="95" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="grpc_server" value="gRPC Server (go-zero zRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF8F00;strokeColor=#E65100;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="620" y="95" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="layer2_bg" value="事件通道 (Event Channel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#0D47A1;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="40" y="200" width="820" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="redis_stream" value="Redis Stream (事件订阅通道)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=6;fillColor=#1976D2;strokeColor=#0D47A1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="350" y="215" width="220" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="layer3_bg" value="核心处理层 (Core Processing)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#1B5E20;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="40" y="290" width="820" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="chain_interactive" value="Chain-Interactive (链交互边界)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF8F00;strokeColor=#E65100;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="315" width="160" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="event_manager" value="Event Manager (事件管理器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="290" y="315" width="160" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="handler_registry" value="Handler Registry (处理器注册表)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="510" y="315" width="140" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="dispatcher" value="Dispatcher (事件分发器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="290" y="380" width="160" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="generic_handler" value="Generic Handler (通用事件处理器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388E3C;strokeColor=#1B5E20;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="290" y="450" width="160" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="adapter_registry" value="Adapter Registry (链适配器注册表)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="80" y="450" width="140" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="message_router" value="Message Router (三级路由引擎)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="510" y="450" width="140" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="executor" value="Reliable Executor (可靠跨链执行器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388E3C;strokeColor=#1B5E20;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="290" y="530" width="160" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="reliability_group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#558B2F;dashed=1;verticalAlign=top;fontSize=10;arcSize=8;" parent="1" vertex="1">
+          <mxGeometry x="80" y="520" width="140" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="reliability_title" value="可靠性保障" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=1;fontColor=#33691E;" parent="1" vertex="1">
+          <mxGeometry x="95" y="525" width="110" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency" value="幂等性检查" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#AED581;strokeColor=#689F38;fontColor=#1B5E20;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="95" y="553" width="110" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="retry" value="指数退避重试" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#AED581;strokeColor=#689F38;fontColor=#1B5E20;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="95" y="595" width="110" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="task_store" value="任务状态追踪" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#AED581;strokeColor=#689F38;fontColor=#1B5E20;fontSize=10;" parent="1" vertex="1">
+          <mxGeometry x="95" y="637" width="110" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="mapping" value="Mapping Engine (字段映射·预留)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#A5D6A7;fontColor=#558B2F;fontSize=10;dashed=1;dashPattern=5 5;" parent="1" vertex="1">
+          <mxGeometry x="510" y="530" width="140" height="42" as="geometry" />
+        </mxCell>
+        <mxCell id="support_bg" value="支撑平面 (Observability)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#B71C1C;arcSize=6;" parent="1" vertex="1">
+          <mxGeometry x="880" y="290" width="180" height="420" as="geometry" />
+        </mxCell>
+        <mxCell id="metrics" value="Metrics (Prometheus)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="320" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="logging" value="Logging (结构化日志)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="375" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="health" value="Health Check (健康检查)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="430" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="docker" value="Docker (容器化部署)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="485" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="config_center" value="Config Center (配置中心)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="540" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="grpc_api" value="gRPC API (对外接口)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="910" y="595" width="120" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_eth_ci" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;startArrow=classic;strokeColor=#F9A825;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.2;entryY=0;" parent="1" source="ethereum" target="chain_interactive" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_cm_ci" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;startArrow=classic;strokeColor=#F9A825;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="chainmaker" target="chain_interactive" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_sol_ci" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;startArrow=classic;strokeColor=#F9A825;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.8;entryY=0;" parent="1" source="solana" target="chain_interactive" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_ci_redis" value="发布事件" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=0.5;exitY=1;entryX=0.3;entryY=0;" parent="1" source="chain_interactive" target="redis_stream" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_redis_em" value="订阅事件" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="redis_stream" target="event_manager" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_em_registry" value="获取处理器" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#388E3C;fontColor=#2E7D32;fontSize=9;strokeWidth=1.2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="event_manager" target="handler_registry" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_em_disp" value="创建分发" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="event_manager" target="dispatcher" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_disp_gh" value="按事件名分发" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="dispatcher" target="generic_handler" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_gh_adapter" value="解析事件" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#388E3C;fontColor=#2E7D32;fontSize=9;strokeWidth=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" parent="1" source="generic_handler" target="adapter_registry" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_gh_router" value="路由查找" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#388E3C;fontColor=#2E7D32;fontSize=9;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="generic_handler" target="message_router" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_gh_exec" value="执行跨链" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1B5E20;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="generic_handler" target="executor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_rel" value="可靠性保障" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#558B2F;fontColor=#33691E;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=0;exitY=0.5;entryX=1;entryY=0.4;" parent="1" source="executor" target="reliability_group" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_ci" value="SendCrossChainTx (gRPC)" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#E65100;fontColor=#E65100;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.5;entryY=1;" parent="1" source="executor" target="chain_interactive" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="700" />
+              <mxPoint x="30" y="700" />
+              <mxPoint x="30" y="357" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_mapping_exec" value="映射请求" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#A5D6A7;fontColor=#558B2F;fontSize=9;dashed=1;dashPattern=5 5;strokeWidth=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" parent="1" source="mapping" target="executor" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_ci_metrics" value="采集指标" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="chain_interactive" target="metrics" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_metrics" value="采集指标" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="executor" target="metrics" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_event_metrics" value="采集指标" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="event_manager" target="metrics" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_logging" value="写日志" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="executor" target="logging" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_health" value="健康上报" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="1" source="executor" target="health" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_exec_docker" value="容器信息" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;dashed=1;dashPattern=4 4;strokeWidth=1;entryX=0;entryY=0.5;" parent="1" source="layer3_bg" target="docker" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#BDBDBD;arcSize=4;" parent="1" vertex="1">
+          <mxGeometry x="40" y="750" width="1020" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="图例与数据流说明" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+          <mxGeometry x="60" y="755" width="120" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_line1" value="—— 实线箭头 = 同步调用 (gRPC/函数调用)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="60" y="785" width="280" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_line2" value="- - - 虚线箭头 = 异步消息 (Redis Stream Pub/Sub)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="60" y="805" width="330" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_line3" value="◀——▶ 双向箭头 = 双向通信 (区块链节点交互)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="60" y="825" width="330" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_color1" value="🟢 绿色 = 核心业务逻辑组件" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="460" y="785" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_color2" value="🔵 蓝色 = 基础设施 (Redis/MySQL)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="460" y="805" width="210" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_color3" value="🟡 黄色 = 边界组件 (区块链/外部系统/网关)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="460" y="825" width="260" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_color4" value="🔴 红色 = 支撑平面 (可观测性)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="460" y="845" width="190" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_color5" value="🟠 橙色 = 链交互边界 (Chain-Interactive)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" parent="1" vertex="1">
+          <mxGeometry x="750" y="785" width="260" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_flow" value="核心流程: 区块链 → Chain-Interactive → Redis Stream → Event Manager → Dispatcher → Generic Handler → [Adapter解析 + Router路由] → Executor → Chain-Interactive" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#1B5E20;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="60" y="875" width="780" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

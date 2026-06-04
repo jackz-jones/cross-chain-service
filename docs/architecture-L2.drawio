@@ -1,0 +1,230 @@
+<mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="950" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- 标题 -->
+    <mxCell id="title" value="Cross-Chain Service 子领域技术架构" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;fontColor=#1A237E;" vertex="1" parent="1">
+      <mxGeometry x="280" y="15" width="380" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="subtitle" value="L2 子领域架构 · 面向领域架构师 / 核心开发" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="330" y="45" width="280" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- 外部边界 (黄色虚线) -->
+    <mxCell id="ext_boundary" value="外部边界" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F9A825;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#F57F17;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="75" width="1020" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="chain_interactive_ext" value="Chain-Interactive Service\n(上游·事件源)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="93" width="200" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="supervision_ext" value="Supervision Service\n(下游·监管)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF176;strokeColor=#F9A825;fontColor=#333333;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="700" y="93" width="200" height="36" as="geometry"/>
+    </mxCell>
+    
+    <!-- ====== 事件驱动域 (绿色核心) ====== -->
+    <mxCell id="domain_event" value="事件驱动域 (Event Domain)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#1B5E20;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="165" width="500" height="210" as="geometry"/>
+    </mxCell>
+    <mxCell id="event_manager" value="Event Manager\n(事件管理器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="70" y="200" width="150" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="em_desc" value="职责：订阅 Redis Stream\n管理消费者组、分配事件" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="70" y="245" width="170" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="dispatcher" value="Handler Dispatcher\n(事件分发器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="280" y="200" width="150" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="disp_desc" value="职责：按事件名匹配处理器\n分发到对应 Handler" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="280" y="245" width="160" height="30" as="geometry"/>
+    </mxCell>
+    <!-- 事件驱动域内连线 -->
+    <mxCell id="edge_em_disp" value="分发" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.2;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="event_manager" target="dispatcher">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 链适配域 (绿色核心) ====== -->
+    <mxCell id="domain_adapter" value="链适配域 (Chain Adapter Domain)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#1B5E20;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="395" width="320" height="210" as="geometry"/>
+    </mxCell>
+    <mxCell id="adapter_registry" value="Adapter Registry\n(适配器注册表)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="70" y="430" width="150" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="ar_desc" value="职责：管理多链适配器实例\n按链类型查找对应适配器" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="70" y="475" width="170" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="eth_adapter" value="Ethereum\nAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="70" y="520" width="80" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="cm_adapter" value="ChainMaker\nAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="160" y="520" width="80" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="sol_adapter" value="Solana\nAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="250" y="520" width="80" height="42" as="geometry"/>
+    </mxCell>
+    <!-- 链适配域内连线 -->
+    <mxCell id="edge_adapter_registry" value="查找适配器" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="adapter_registry" target="eth_adapter">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 消息路由域 (绿色核心) ====== -->
+    <mxCell id="domain_message" value="消息路由域 (Message Routing Domain)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#1B5E20;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="390" y="395" width="320" height="210" as="geometry"/>
+    </mxCell>
+    <mxCell id="message_router" value="Message Router\n(三级路由引擎)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="420" y="430" width="150" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="mr_desc" value="职责：链级→合约级→事件级\n三级路由匹配，确定目标链" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="420" y="475" width="180" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="handler_registry" value="Handler Registry\n(处理器注册表)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="420" y="520" width="150" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="hr_desc" value="职责：注册/查找消息处理器\n支持按合约类型匹配" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="420" y="565" width="170" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="cross_chain_msg" value="CrossChainMessage\n(跨链消息模型)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A5D6A7;strokeColor=#66BB6A;fontColor=#1B5E20;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="600" y="430" width="90" height="42" as="geometry"/>
+    </mxCell>
+    <!-- 消息路由域内连线 -->
+    <mxCell id="edge_router_registry" value="查找处理器" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="message_router" target="handler_registry">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 执行域 (绿色核心) ====== -->
+    <mxCell id="domain_execution" value="执行域 (Execution Domain)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=0;verticalAlign=top;fontStyle=1;fontSize=12;fontColor=#1B5E20;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="625" width="670" height="130" as="geometry"/>
+    </mxCell>
+    <mxCell id="executor" value="Reliable Executor\n(可靠跨链执行器)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388E3C;strokeColor=#1B5E20;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="70" y="660" width="170" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="exec_desc" value="职责：幂等检查→执行→重试→状态追踪" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="70" y="705" width="230" height="18" as="geometry"/>
+    </mxCell>
+    <mxCell id="idempotency" value="幂等性检查" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="290" y="655" width="100" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="retry" value="指数退避重试" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="410" y="655" width="100" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="task_store" value="任务状态追踪" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#81C784;strokeColor=#388E3C;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="530" y="655" width="100" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="reliability_desc" value="可靠性保障机制" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#1B5E20;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="380" y="695" width="100" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 映射域 (预留·虚线) ====== -->
+    <mxCell id="domain_mapping" value="映射域 (Mapping Domain · 预留)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F8E9;strokeColor=#A5D6A7;dashed=1;dashPattern=5 5;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#689F38;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="740" y="395" width="320" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="mapping_engine" value="Mapping Engine\n(字段映射引擎)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#A5D6A7;fontColor=#558B2F;fontSize=10;dashed=1;dashPattern=5 5;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="770" y="430" width="130" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="mapping_rule" value="Mapping Rule\n(映射规则)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#A5D6A7;fontColor=#558B2F;fontSize=10;dashed=1;dashPattern=5 5;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="920" y="430" width="110" height="42" as="geometry"/>
+    </mxCell>
+    <mxCell id="mapping_note" value="预留扩展：当前未在主流程中启用" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=9;fontColor=#999999;fontStyle=2;" vertex="1" parent="1">
+      <mxGeometry x="790" y="480" width="200" height="18" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 支撑平面 (红色竖井) ====== -->
+    <mxCell id="support_plane" value="支撑平面 (Observability)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;dashed=1;verticalAlign=top;fontStyle=1;fontSize=11;fontColor=#B71C1C;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="740" y="545" width="320" height="210" as="geometry"/>
+    </mxCell>
+    <mxCell id="metrics" value="Metrics Collector\n(指标采集)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="770" y="580" width="120" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="health" value="Health Checker\n(健康检查)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="580" width="120" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="config_mgr" value="Config Validator\n(配置校验)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="770" y="630" width="120" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="resp_code" value="Response Code\n(统一错误码)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="910" y="630" width="120" height="36" as="geometry"/>
+    </mxCell>
+    <mxCell id="grpc_api" value="gRPC API\n(对外接口)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EF5350;strokeColor=#C62828;fontColor=#FFFFFF;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="840" y="685" width="120" height="36" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 域间连线 ====== -->
+    <!-- 外部 → 事件驱动域 (Redis Stream 异步) -->
+    <mxCell id="edge_ext_em" value="Redis Stream (异步)" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#1565C0;fontColor=#0D47A1;fontSize=9;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=0.5;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="chain_interactive_ext" target="domain_event">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 事件驱动域 → 链适配域 (同步调用) -->
+    <mxCell id="edge_disp_adapter" value="按事件名解析" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.2;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="dispatcher" target="domain_adapter">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 事件驱动域 → 消息路由域 (同步调用) -->
+    <mxCell id="edge_disp_router" value="路由查找" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.2;exitX=0.8;exitY=1;entryX=0.3;entryY=0;" edge="1" parent="1" source="dispatcher" target="domain_message">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 链适配域 → 执行域 (解析后执行) -->
+    <mxCell id="edge_adapter_exec" value="解析完成→执行" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.2;entryY=0;" edge="1" parent="1" source="domain_adapter" target="domain_execution">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 消息路由域 → 执行域 (路由后执行) -->
+    <mxCell id="edge_router_exec" value="路由命中→执行" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#2E7D32;fontColor=#1B5E20;fontSize=9;strokeWidth=1.5;exitX=0.5;exitY=1;entryX=0.6;entryY=0;" edge="1" parent="1" source="domain_message" target="domain_execution">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <!-- 执行域 → Chain-Interactive (gRPC 发送交易) -->
+    <mxCell id="edge_exec_ext" value="gRPC 发送交易" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#F9A825;fontColor=#F57F17;fontSize=9;strokeWidth=1.5;exitX=0;exitY=0.3;entryX=0;entryY=1;" edge="1" parent="1" source="executor" target="chain_interactive_ext">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="50" y="700"/>
+          <mxPoint x="50" y="130"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <!-- 执行域 → 支撑平面 (可靠性保障) -->
+    <mxCell id="edge_exec_support" value="可靠性保障" style="edgeStyle=orthogonalEdgeStyle;curved=1;endArrow=classic;strokeColor=#C62828;fontColor=#B71C1C;fontSize=9;strokeWidth=1;dashed=1;dashPattern=4 4;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="executor" target="support_plane">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ====== 图例 ====== -->
+    <mxCell id="legend_bg" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#BDBDBD;arcSize=4;" vertex="1" parent="1">
+      <mxGeometry x="40" y="775" width="1020" height="120" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_title" value="图例与领域说明" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+      <mxGeometry x="60" y="780" width="110" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d1" value="事件驱动域：负责事件订阅、分发、处理的完整生命周期" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="800" width="330" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d2" value="链适配域：屏蔽多链差异，提供统一的事件解析接口" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="820" width="310" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d3" value="消息路由域：三级路由匹配（链→合约→事件），确定跨链目标" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="840" width="380" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d4" value="执行域：可靠执行跨链交易（幂等+重试+状态追踪）" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="500" y="800" width="310" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d5" value="映射域（预留）：字段映射转换，当前未启用" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#999999;" vertex="1" parent="1">
+      <mxGeometry x="500" y="820" width="270" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_d6" value="支撑平面：可观测性、配置校验、统一错误码、对外 API" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="500" y="840" width="330" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_l1" value="—— 实线 = 同步调用 (gRPC/函数调用)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="870" width="260" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_l2" value="- - - 虚线 = 异步消息 (Redis Stream)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="60" y="890" width="260" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c1" value="🟢 绿色 = 核心业务逻辑组件" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="870" width="180" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c2" value="🔵 蓝色 = 基础设施 (Redis/MySQL)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="460" y="890" width="210" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c3" value="🟡 黄色 = 边界组件 (区块链/外部系统)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="680" y="870" width="230" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_c4" value="🔴 红色 = 支撑平面 (可观测性)" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontColor=#555555;" vertex="1" parent="1">
+      <mxGeometry x="680" y="890" width="210" height="20" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>
