@@ -3,6 +3,7 @@ package event
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -27,10 +28,10 @@ var (
 	defaultConsumer = "cross-chain-service-consumer"
 
 	// retryChainListInterval 查询链列表的时间间隔
-	retryChainListInterval = time.Duration(3) * time.Second
+	retryChainListInterval = 3 * time.Second
 
 	// retrySubscribeToStreamInterval 订阅链事件失败时，重新订阅的时间间隔
-	retrySubscribeToStreamInterval = time.Duration(10) * time.Second
+	retrySubscribeToStreamInterval = 10 * time.Second
 )
 
 // RouteTable 路由表，定义链之间的跨链目标关系
@@ -52,14 +53,21 @@ type Manager struct {
 
 // NewEventManager 实例化事件管理器
 // ctx: 父 context，用于优雅退出时通知所有子协程停止
+// 说明：复用 svcCtx.SharedRedisClient，避免每次都重连 Redis；
+// 若共享客户端为空（理论上 NewServiceContext 已保证非空），则回退到懒创建一次。
 func NewEventManager(ctx context.Context, svcCtx *svc.ServiceContext) *Manager {
 
-	// 初始化事件 redis 客户端
-	client, err := event.NewRedisClient(svcCtx.Config.SubscribeConf.ConfType, svcCtx.Config.SubscribeConf.RedisAddr,
-		svcCtx.Config.SubscribeConf.RedisUserName, svcCtx.Config.SubscribeConf.RedisPassword,
-		svcCtx.Config.SubscribeConf.MasterName)
-	if err != nil {
-		panic(err)
+	client := svcCtx.SharedRedisClient
+	if client == nil {
+		// 兜底：SharedRedisClient 缺失时懒创建一次，避免 nil 解引用
+		var err error
+		client, err = event.NewRedisClient(svcCtx.Config.SubscribeConf.ConfType, svcCtx.Config.SubscribeConf.RedisAddr,
+			svcCtx.Config.SubscribeConf.RedisUserName, svcCtx.Config.SubscribeConf.RedisPassword,
+			svcCtx.Config.SubscribeConf.MasterName)
+		if err != nil {
+			logx.WithContext(ctx).Errorf("[event] shared redis client missing and fallback init failed: %v", err)
+			return nil
+		}
 	}
 
 	return &Manager{
@@ -79,53 +87,7 @@ func (e *Manager) Process() {
 	// 阻塞加载链服务配置信息
 	// 如果加载不出来，则3秒后重新尝试
 	// 直到正确获取链配置，或者 context 被取消
-	func() {
-		for {
-			// 检查 context 是否已取消
-			select {
-			case <-e.eventCtx.Done():
-				e.Logger.Info("[event] context cancelled, stopping chain config loading")
-				return
-			default:
-			}
-
-			if e.svcCtx.ChainInteractiveServiceClient == nil {
-				e.Logger.Error("[event] chain interactive client is nil")
-				time.Sleep(retryChainListInterval)
-				continue
-			}
-
-			// 获取链配置
-			req := &chainCli.GetAvailableChainAndContractNamesRequest{
-				RequestId: "cross-chain-service-query-chain-config",
-			}
-			resp, err := e.svcCtx.ChainInteractiveServiceClient.GetAvailableChainAndContractNames(e.eventCtx, req)
-			if err != nil {
-				e.Logger.Errorf("failed to send GetAvailableChainAndContractNames req: %v", err)
-				time.Sleep(retryChainListInterval)
-				continue
-			}
-
-			// 检查 grpc 返回错误码
-			if resp.Code != int32(code.Success) {
-				e.Logger.Errorf("failed to execute GetAvailableChainAndContractNames: [%d]%s", resp.Code, resp.Msg)
-				time.Sleep(retryChainListInterval)
-				continue
-			}
-
-			e.Logger.Infof("success to GetAvailableChainAndContractNames: %v", resp.Data)
-
-			// 检查是否有可用的链配置
-			if len(resp.Data) == 0 {
-				e.Logger.Infof("empty chain config by GetAvailableChainAndContractNames")
-				time.Sleep(retryChainListInterval)
-				continue
-			}
-
-			e.chainConfig = resp.Data
-			break
-		}
-	}()
+	e.refreshChainConfig(true)
 
 	// 从配置文件加载合约订阅组名称
 	if e.svcCtx.Config.SubscribeConf.GroupName != "" {
@@ -139,6 +101,70 @@ func (e *Manager) Process() {
 
 	// 启动事件监听
 	go e.processEvent()
+}
+
+// refreshChainConfig 从链交互服务同步一次链配置。
+// blockUntilNonEmpty=true 时会阻塞重试直到成功或 context 取消（用于启动阶段）；
+// blockUntilNonEmpty=false 时最多尝试一次，返回是否刷新成功（预留给后续周期性刷新）。
+func (e *Manager) refreshChainConfig(blockUntilNonEmpty bool) bool {
+	for {
+		// 检查 context 是否已取消
+		select {
+		case <-e.eventCtx.Done():
+			e.Logger.Info("[event] context cancelled, stopping chain config loading")
+			return false
+		default:
+		}
+
+		chainClient := e.svcCtx.GetChainInteractiveClient()
+		if chainClient == nil {
+			e.Logger.Error("[event] chain interactive client is nil")
+			if !blockUntilNonEmpty {
+				return false
+			}
+			time.Sleep(retryChainListInterval)
+			continue
+		}
+
+		// 获取链配置
+		req := &chainCli.GetAvailableChainAndContractNamesRequest{
+			RequestId: "cross-chain-service-query-chain-config",
+		}
+		resp, err := chainClient.GetAvailableChainAndContractNames(e.eventCtx, req)
+		if err != nil {
+			e.Logger.Errorf("failed to send GetAvailableChainAndContractNames req: %v", err)
+			if !blockUntilNonEmpty {
+				return false
+			}
+			time.Sleep(retryChainListInterval)
+			continue
+		}
+
+		// 检查 grpc 返回错误码
+		if resp.Code != int32(code.Success) {
+			e.Logger.Errorf("failed to execute GetAvailableChainAndContractNames: [%d]%s", resp.Code, resp.Msg)
+			if !blockUntilNonEmpty {
+				return false
+			}
+			time.Sleep(retryChainListInterval)
+			continue
+		}
+
+		e.Logger.Infof("success to GetAvailableChainAndContractNames: %v", resp.Data)
+
+		// 检查是否有可用的链配置
+		if len(resp.Data) == 0 {
+			e.Logger.Infof("empty chain config by GetAvailableChainAndContractNames")
+			if !blockUntilNonEmpty {
+				return false
+			}
+			time.Sleep(retryChainListInterval)
+			continue
+		}
+
+		e.chainConfig = resp.Data
+		return true
+	}
 }
 
 // buildRouteTable 构建路由表
@@ -192,16 +218,15 @@ func (e *Manager) listenChainEvent(ctx context.Context, chainConfig *chainCli.Ch
 		return
 	}
 
-	// 使用第一个目标链作为主要跨链目标（兼容现有双链逻辑）
-	// 未来可扩展为多目标广播
-	primaryTarget := targetChains[0]
-	if len(targetChains) > 1 {
-		e.Logger.Infof("[event] chain '%s' has %d targets, using '%s' as primary target",
-			chainConfig.ChainName, len(targetChains), primaryTarget.ChainName)
+	targetNames := make([]string, 0, len(targetChains))
+	for _, t := range targetChains {
+		targetNames = append(targetNames, t.ChainName)
 	}
+	e.Logger.Infof("[event] chain '%s' has %d cross-chain target(s): %v",
+		chainConfig.ChainName, len(targetChains), targetNames)
 
-	// 通用框架模式：从配置读取插件处理器
-	eventHandlers := e.createHandlers(chainConfig, primaryTarget)
+	// 通用框架模式：从配置读取插件处理器（支持广播到多目标链）
+	eventHandlers := e.createHandlers(chainConfig, targetChains)
 
 	dispatcher := newHandlerDispatcher(eventHandlers, e.Logger)
 	contracts := chainConfig.GetContractDescs()
@@ -212,18 +237,34 @@ func (e *Manager) listenChainEvent(ctx context.Context, chainConfig *chainCli.Ch
 			e.Logger.Infof("[event] subscribe redis, ChainName:%s, ChainType:%s, ContractName:%s, ContractType:%s",
 				chainConfig.ChainName, chainConfig.ChainType, contractDesc.ContractName, contractDesc.ContractType)
 			err1 := retry.Retry(func(attempt uint) error {
+				// ctx 已取消，直接退出重试循环
+				if ctx.Err() != nil {
+					e.Logger.Infof("[event] context cancelled, stop subscribe stream, ChainName:%s, ContractName:%s",
+						chainConfig.ChainName, contractDesc.ContractName)
+					return nil
+				}
+
 				err := e.redisClient.SubscribeTradeGuardEventFromStream(ctx, strings.ToLower(chainConfig.ChainType.String()),
 					chainConfig.ChainName, strings.ToLower(contractDesc.ContractType.String()), contractDesc.ContractName,
 					e.groupName, defaultConsumer, dispatcher.dispatchTopicHandler, false, 100, 0)
-				logx.WithContext(ctx).Errorf("subscribe to steam error: %s", err)
-				// 不是主动取消，则订阅重试
-				if !strings.Contains(err.Error(), context.Canceled.Error()) {
-					e.Logger.Infof("[event] subscribe redis, ChainName:%s, ChainType:%s, ContractName:%s, ContractType:%s, "+
-						"retry times:%d", chainConfig.ChainName, chainConfig.ChainType, contractDesc.ContractName,
-						contractDesc.ContractType, attempt)
-					return err
+
+				// 订阅正常返回：不再重试
+				if err == nil {
+					e.Logger.Infof("[event] subscribe stream returned without error, ChainName:%s, ContractName:%s",
+						chainConfig.ChainName, contractDesc.ContractName)
+					return nil
 				}
-				return nil
+
+				// 上下文被取消（含 ctx 已过期）：视为正常退出，不再重试
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					e.Logger.Infof("[event] subscribe stream cancelled, ChainName:%s, ContractName:%s, err:%v",
+						chainConfig.ChainName, contractDesc.ContractName, err)
+					return nil
+				}
+
+				e.Logger.Errorf("[event] subscribe stream error, ChainName:%s, ContractName:%s, retry:%d, err:%v",
+					chainConfig.ChainName, contractDesc.ContractName, attempt, err)
+				return err
 			}, strategy.Wait(retrySubscribeToStreamInterval))
 			if err1 != nil {
 				e.Logger.Errorf("[event] subscribe redis, ChainName:%s, ChainType:%s, ContractName:%s, ContractType:%s, err:%s",
@@ -257,9 +298,10 @@ func (rt RouteTable) String() string {
 }
 
 // createHandlers 创建事件处理器
+// targetChains: 该源链的全部跨链目标链配置，handlerAdapter 内部会按路由结果 fan-out。
 func (e *Manager) createHandlers(
 	chainConfig *chainCli.ChainAndContractName,
-	primaryTarget *chainCli.ChainAndContractName,
+	targetChains []*chainCli.ChainAndContractName,
 ) []handler {
 	var handlers []handler
 
@@ -269,13 +311,13 @@ func (e *Manager) createHandlers(
 
 	for name, genericHandler := range allHandlers {
 		adp := &handlerAdapter{
-			ctx:                  e.eventCtx,
-			svcCtx:               e.svcCtx,
-			logger:               e.Logger,
-			processor:            genericHandler,
-			registry:             adapter.GlobalRegistry(),
-			contractConfs:        chainConfig.ContractDescs,
-			crossTargetChainConf: primaryTarget,
+			ctx:                   e.eventCtx,
+			svcCtx:                e.svcCtx,
+			logger:                e.Logger,
+			processor:             genericHandler,
+			registry:              adapter.GlobalRegistry(),
+			contractConfs:         chainConfig.ContractDescs,
+			crossTargetChainConfs: targetChains,
 		}
 		// 使用通用处理器的事件名作为 handler 的事件名
 		handlers = append(handlers, adp)

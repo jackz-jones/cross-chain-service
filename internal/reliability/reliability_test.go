@@ -292,7 +292,9 @@ func TestTaskState_String(t *testing.T) {
 		{TaskStateSubmitted, "submitted"},
 		{TaskStateConfirmed, "confirmed"},
 		{TaskStateFailed, "failed"},
-		{TaskState(99), "unknown"},
+		// TaskState 现在是 string 常量：非空未知值原样返回，仅空串返回 unknown
+		{TaskState(""), "unknown"},
+		{TaskState("bogus-99"), "bogus-99"},
 	}
 
 	for _, tt := range tests {

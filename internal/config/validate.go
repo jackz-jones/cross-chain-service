@@ -7,11 +7,17 @@ import (
 	"strconv"
 )
 
+// chainInteractiveServiceKey 是核心依赖：跨链服务通过它拉取链/合约元数据。
+const chainInteractiveServiceKey = "chain-interactive-service"
+
 // Validate 校验配置有效性
 func (c *Config) Validate() error {
 	// 校验订阅配置
 	if c.SubscribeConf.RedisAddr == "" {
 		return fmt.Errorf("SubscribeConf.RedisAddr is required")
+	}
+	if c.SubscribeConf.GroupName == "" {
+		return fmt.Errorf("SubscribeConf.GroupName is required")
 	}
 
 	// 校验外部 gRPC 配置
@@ -19,9 +25,16 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("at least one ExternalGrpcConf is required")
 	}
 	for name, conf := range c.ExternalGrpcConfs {
+		if conf == nil {
+			return fmt.Errorf("ExternalGrpcConfs[%s] is nil", name)
+		}
 		if conf.Endpoint == "" {
 			return fmt.Errorf("ExternalGrpcConfs[%s].Endpoint is required", name)
 		}
+	}
+	// 必须显式配置 chain-interactive-service，否则服务无法运行
+	if _, ok := c.ExternalGrpcConfs[chainInteractiveServiceKey]; !ok {
+		return fmt.Errorf("ExternalGrpcConfs[%q] is required", chainInteractiveServiceKey)
 	}
 
 	// 校验可靠性配置
@@ -30,6 +43,24 @@ func (c *Config) Validate() error {
 	}
 	if c.ReliabilityConf.RetryMultiplier < 0 {
 		return fmt.Errorf("ReliabilityConf.RetryMultiplier must be >= 0")
+	}
+	if c.ReliabilityConf.IdempotencyTTL < 0 {
+		return fmt.Errorf("ReliabilityConf.IdempotencyTTL must be >= 0")
+	}
+	if c.ReliabilityConf.RetryBaseDelay < 0 {
+		return fmt.Errorf("ReliabilityConf.RetryBaseDelay must be >= 0")
+	}
+	if c.ReliabilityConf.RetryMaxDelay < 0 {
+		return fmt.Errorf("ReliabilityConf.RetryMaxDelay must be >= 0")
+	}
+
+	// 校验路由策略枚举
+	switch c.RouteConf.UnroutedMessagePolicy {
+	case "", "discard", "retry":
+		// ok
+	default:
+		return fmt.Errorf("RouteConf.UnroutedMessagePolicy must be one of [discard, retry], got %q",
+			c.RouteConf.UnroutedMessagePolicy)
 	}
 
 	return nil

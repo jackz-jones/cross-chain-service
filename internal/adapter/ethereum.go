@@ -1,10 +1,10 @@
 package adapter
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
-	"chainmaker.org/chainmaker/common/v2/json"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
 	commonEvent "github.com/jackz-jones/common/event"

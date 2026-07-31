@@ -1,10 +1,10 @@
 package adapter
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
-	"chainmaker.org/chainmaker/common/v2/json"
 	"chainmaker.org/chainmaker/pb-go/v2/common"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
 	"github.com/jackz-jones/cross-chain-service/internal/code"

@@ -10,13 +10,16 @@ const (
 	testOriginalAddr = "original:6379"
 	testEnvRedisAddr = "env-redis:6379"
 	testGrpcEndpoint = "localhost:8080"
+	testGroupName    = "test-group"
+	testChainKey     = "chain-interactive-service"
 )
 
 func TestConfig_Validate_Valid(t *testing.T) {
 	c := &Config{}
 	c.SubscribeConf.RedisAddr = testRedisAddr
+	c.SubscribeConf.GroupName = testGroupName
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: testGrpcEndpoint},
+		testChainKey: {Endpoint: testGrpcEndpoint},
 	}
 
 	err := c.Validate()
@@ -27,8 +30,9 @@ func TestConfig_Validate_Valid(t *testing.T) {
 
 func TestConfig_Validate_MissingRedisAddr(t *testing.T) {
 	c := &Config{}
+	c.SubscribeConf.GroupName = testGroupName
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: "localhost:8080"},
+		testChainKey: {Endpoint: "localhost:8080"},
 	}
 
 	err := c.Validate()
@@ -40,6 +44,7 @@ func TestConfig_Validate_MissingRedisAddr(t *testing.T) {
 func TestConfig_Validate_EmptyExternalGrpc(t *testing.T) {
 	c := &Config{}
 	c.SubscribeConf.RedisAddr = testRedisAddr
+	c.SubscribeConf.GroupName = testGroupName
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{}
 
 	err := c.Validate()
@@ -51,8 +56,9 @@ func TestConfig_Validate_EmptyExternalGrpc(t *testing.T) {
 func TestConfig_Validate_MissingEndpoint(t *testing.T) {
 	c := &Config{}
 	c.SubscribeConf.RedisAddr = testRedisAddr
+	c.SubscribeConf.GroupName = testGroupName
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: ""},
+		testChainKey: {Endpoint: ""},
 	}
 
 	err := c.Validate()
@@ -64,8 +70,9 @@ func TestConfig_Validate_MissingEndpoint(t *testing.T) {
 func TestConfig_Validate_InvalidRetryConfig(t *testing.T) {
 	c := &Config{}
 	c.SubscribeConf.RedisAddr = testRedisAddr
+	c.SubscribeConf.GroupName = testGroupName
 	c.ExternalGrpcConfs = map[string]*ExternalGrpcConf{
-		"chain": {Endpoint: testGrpcEndpoint},
+		testChainKey: {Endpoint: testGrpcEndpoint},
 	}
 	c.ReliabilityConf.MaxRetries = -1
 

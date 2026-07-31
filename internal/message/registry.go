@@ -17,14 +17,19 @@ type HandlerRegistry struct {
 	logger   logx.Logger
 }
 
-// 全局注册表实例
-var globalHandlerRegistry *HandlerRegistry
+// 全局注册表实例（通过 sync.Once 保证并发安全的一次性初始化）
+var (
+	globalHandlerRegistry     *HandlerRegistry
+	globalHandlerRegistryOnce sync.Once
+)
 
-// initGlobalRegistry 初始化全局注册表（延迟初始化，在第一次使用时调用）
-func initGlobalRegistry() {
-	if globalHandlerRegistry == nil {
+// ensureGlobalRegistry 使用 sync.Once 完成全局注册表的懒加载初始化，
+// 保证在任意并发场景下都不会出现 nil pointer 或重复创建。
+func ensureGlobalRegistry() *HandlerRegistry {
+	globalHandlerRegistryOnce.Do(func() {
 		globalHandlerRegistry = NewHandlerRegistry(logx.WithContext(context.Background()))
-	}
+	})
+	return globalHandlerRegistry
 }
 
 // NewHandlerRegistry 创建新的事件处理器注册表
@@ -69,20 +74,19 @@ func (r *HandlerRegistry) GetAll() map[string]GenericEventHandler {
 	return result
 }
 
-// GlobalHandlerRegistry 获取全局处理器注册表
+// GlobalHandlerRegistry 获取全局处理器注册表（并发安全）
 func GlobalHandlerRegistry() *HandlerRegistry {
-	initGlobalRegistry()
-	return globalHandlerRegistry
+	return ensureGlobalRegistry()
 }
 
-// RegisterHandler 向全局注册表注册处理器（便捷函数）
+// RegisterHandler 向全局注册表注册处理器（便捷函数，并发安全）
 func RegisterHandler(handler GenericEventHandler) {
-	globalHandlerRegistry.Register(handler)
+	ensureGlobalRegistry().Register(handler)
 }
 
-// GetHandler 从全局注册表获取处理器（便捷函数）
+// GetHandler 从全局注册表获取处理器（便捷函数，并发安全）
 func GetHandler(name string) (GenericEventHandler, error) {
-	handler, ok := globalHandlerRegistry.Get(name)
+	handler, ok := ensureGlobalRegistry().Get(name)
 	if !ok {
 		return nil, fmt.Errorf("handler not found: %s", name)
 	}

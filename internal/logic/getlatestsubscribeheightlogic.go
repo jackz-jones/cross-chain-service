@@ -8,7 +8,6 @@ import (
 	"github.com/jackz-jones/cross-chain-service/internal/svc"
 	pb "github.com/jackz-jones/cross-chain-service/pb"
 
-	"github.com/jackz-jones/common/event"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -42,13 +41,11 @@ func (l *GetLatestSubscribeHeightLogic) GetLatestSubscribeHeight(
 	}...)
 	logger.Info("receive GetLatestSubscribeHeight request")
 
-	// 初始化redis client
-	redisClient, err := event.NewRedisClient(l.svcCtx.Config.SubscribeConf.ConfType,
-		l.svcCtx.Config.SubscribeConf.RedisAddr, l.svcCtx.Config.SubscribeConf.RedisUserName,
-		l.svcCtx.Config.SubscribeConf.RedisPassword, l.svcCtx.Config.SubscribeConf.MasterName)
-	if err != nil {
-		logger.WithFields(logx.LogField{Key: "error", Value: err}).Error(code.ErrNewRedisClient.String())
-		return l.errorResponse(code.ErrNewRedisClient, err), nil
+	// 复用 ServiceContext 中的共享 Redis 客户端，避免每次请求都建立新连接
+	redisClient := l.svcCtx.SharedRedisClient
+	if redisClient == nil {
+		logger.Error(code.ErrNewRedisClient.String() + ": shared redis client is nil")
+		return l.errorResponse(code.ErrNewRedisClient, nil), nil
 	}
 
 	// 获取最新区块高度

@@ -10,6 +10,11 @@ import (
 
 // MessageRouter 通用消息路由引擎
 // 支持事件级别 → 合约级别 → 链级别的优先级路由查找
+//
+// 匹配策略（大小写不敏感，统一使用 strings.EqualFold）：
+//   - SourceChain / TargetChain / SourceContractType / SourceEventName 均不区分大小写
+//   - SourceChain 为空字符串时视为通配，匹配任意源链
+//   - SourceContractType / SourceEventName 为空时表示"不比较该字段"
 type MessageRouter struct { //nolint:revive
 	rules  []config.DetailedRouteRule
 	logger logx.Logger
@@ -22,10 +27,29 @@ func NewMessageRouter(rules []config.DetailedRouteRule, logger logx.Logger, unro
 		unroutedPolicy = "discard"
 	}
 	return &MessageRouter{
-		rules:  rules,
+		rules:  NormalizeRules(rules),
 		logger: logger,
 		policy: unroutedPolicy,
 	}
+}
+
+// NormalizeRules 对路由规则做启动期规范化：
+// 仅做 TrimSpace，保留原大小写（比较阶段统一使用大小写不敏感匹配）。
+// 独立导出便于测试与热加载复用。
+func NormalizeRules(rules []config.DetailedRouteRule) []config.DetailedRouteRule {
+	normalized := make([]config.DetailedRouteRule, len(rules))
+	for i, r := range rules {
+		normalized[i] = config.DetailedRouteRule{
+			Level:              r.Level,
+			SourceChain:        strings.TrimSpace(r.SourceChain),
+			SourceContractType: strings.TrimSpace(r.SourceContractType),
+			SourceEventName:    strings.TrimSpace(r.SourceEventName),
+			TargetChain:        strings.TrimSpace(r.TargetChain),
+			TargetContractType: strings.TrimSpace(r.TargetContractType),
+			TargetMethod:       strings.TrimSpace(r.TargetMethod),
+		}
+	}
+	return normalized
 }
 
 // Route 根据消息内容查找路由目标
@@ -66,6 +90,14 @@ func (r *MessageRouter) Route(msg *CrossChainMessage) ([]RouteTarget, error) {
 	return nil, nil
 }
 
+// matchSourceChain 匹配源链：SourceChain 为空视为通配，否则大小写不敏感比较
+func matchSourceChain(ruleChain, msgChain string) bool {
+	if ruleChain == "" {
+		return true
+	}
+	return strings.EqualFold(ruleChain, msgChain)
+}
+
 // findEventLevelRoutes 查找事件级别路由
 func (r *MessageRouter) findEventLevelRoutes(msg *CrossChainMessage) []RouteTarget {
 	var targets []RouteTarget
@@ -73,7 +105,7 @@ func (r *MessageRouter) findEventLevelRoutes(msg *CrossChainMessage) []RouteTarg
 		if rule.Level != config.RouteLevelEvent {
 			continue
 		}
-		if rule.SourceChain == msg.SourceChain &&
+		if matchSourceChain(rule.SourceChain, msg.SourceChain) &&
 			strings.EqualFold(rule.SourceContractType, msg.SourceContract) &&
 			strings.EqualFold(rule.SourceEventName, msg.Method) {
 			targets = append(targets, RouteTarget{
@@ -93,7 +125,7 @@ func (r *MessageRouter) findContractLevelRoutes(msg *CrossChainMessage) []RouteT
 		if rule.Level != config.RouteLevelContract {
 			continue
 		}
-		if rule.SourceChain == msg.SourceChain &&
+		if matchSourceChain(rule.SourceChain, msg.SourceChain) &&
 			strings.EqualFold(rule.SourceContractType, msg.SourceContract) {
 			targets = append(targets, RouteTarget{
 				TargetChain:    rule.TargetChain,
@@ -112,7 +144,7 @@ func (r *MessageRouter) findChainLevelRoutes(msg *CrossChainMessage) []RouteTarg
 		if rule.Level != config.RouteLevelChain {
 			continue
 		}
-		if rule.SourceChain == msg.SourceChain {
+		if matchSourceChain(rule.SourceChain, msg.SourceChain) {
 			targets = append(targets, RouteTarget{
 				TargetChain:    rule.TargetChain,
 				TargetContract: msg.TargetContract, // 链级别路由保留消息原合约

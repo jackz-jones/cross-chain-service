@@ -53,8 +53,8 @@ func newTestSetup() *testSetup {
 				TxTimeout:      30,
 			},
 		},
-		ChainInteractiveServiceClient: mockClient,
 	}
+	svcCtx.SetChainInteractiveClient(mockClient)
 
 	// 模拟当前链的合约配置（包含 ABI）
 	contractConfs := []*chainPb.ContractDesc{

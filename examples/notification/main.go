@@ -21,30 +21,6 @@ import (
 
 // ==================== 业务数据类型定义 ====================
 
-// EnterpriseInfo 企业信息（对应 notification-contract-go/types.EnterpriseInfo）
-type EnterpriseInfo struct {
-	ID         string `json:"id"`
-	OriginHash string `json:"originHash"`
-	Address    string `json:"address"`
-	Did        string `json:"did"`
-}
-
-// FileInfo 文件信息（对应 notification-contract-go/types.FileInfo）
-type FileInfo struct {
-	ID         string `json:"id"`
-	OriginHash string `json:"originHash"`
-	MsgType    int    `json:"msgType"`
-}
-
-// CallBackInfo 回调信息
-type CallBackInfo struct {
-	ID         string `json:"id"`
-	OriginHash string `json:"originHash"`
-	Code       int    `json:"code"`
-	Msg        string `json:"msg"`
-	MsgType    int    `json:"msgType"`
-}
-
 // EnterpriseNotifiedEvent 企业通知事件数据
 type EnterpriseNotifiedEvent struct {
 	ID             string `json:"id"`
@@ -111,16 +87,15 @@ func (h *EnterpriseNotifiedHandler) BuildMessage(
 		return nil, nil
 	}
 
-	// 构建企业信息 payload
-	enterpriseInfo := &EnterpriseInfo{
-		ID:         event.ID,
-		OriginHash: event.OriginHash,
-		Address:    event.Address,
-		Did:        event.Did,
-	}
-	payload, err := json.Marshal(enterpriseInfo)
+	// 构建企业信息 payload（默认 KVPairsCodec 约定： KeyValuePair 列表 JSON）
+	payload, err := message.EncodeKVPairs(map[string]string{
+		"id":         event.ID,
+		"originHash": event.OriginHash,
+		"address":    event.Address,
+		"did":        event.Did,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal enterprise info: %w", err)
+		return nil, fmt.Errorf("failed to encode enterprise info payload: %w", err)
 	}
 
 	// 创建跨链消息
@@ -133,15 +108,17 @@ func (h *EnterpriseNotifiedHandler) BuildMessage(
 		payload,
 	)
 
-	// 设置回调：如果跨链失败，通知源链
-	callbackInfo := &CallBackInfo{
-		ID:         event.ID,
-		OriginHash: event.OriginHash,
-		Code:       711000,
-		Msg:        "",
-		MsgType:    1, // Enterprise_Create
+	// 设置回调：如果跨链失败，通知源链（callback payload 同样使用 KVPairsCodec 约定）
+	callbackPayload, err := message.EncodeKVPairs(map[string]string{
+		"id":         event.ID,
+		"originHash": event.OriginHash,
+		"code":       "711000",
+		"msg":        "",
+		"msgType":    "1", // Enterprise_Create
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode enterprise callback payload: %w", err)
 	}
-	callbackPayload, _ := json.Marshal(callbackInfo)
 	msg.WithCallback("Callback", callbackPayload)
 
 	// 设置业务元数据
@@ -194,14 +171,13 @@ func (h *FileNotifiedHandler) BuildMessage(
 		return nil, nil
 	}
 
-	fileInfo := &FileInfo{
-		ID:         event.ID,
-		OriginHash: event.OriginHash,
-		MsgType:    event.MsgType,
-	}
-	payload, err := json.Marshal(fileInfo)
+	payload, err := message.EncodeKVPairs(map[string]string{
+		"id":         event.ID,
+		"originHash": event.OriginHash,
+		"msgType":    fmt.Sprintf("%d", event.MsgType),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal file info: %w", err)
+		return nil, fmt.Errorf("failed to encode file info payload: %w", err)
 	}
 
 	msg := message.NewCrossChainMessage(
@@ -214,14 +190,16 @@ func (h *FileNotifiedHandler) BuildMessage(
 	)
 
 	// 设置回调
-	callbackInfo := &CallBackInfo{
-		ID:         event.ID,
-		OriginHash: event.OriginHash,
-		Code:       712000,
-		Msg:        "",
-		MsgType:    event.MsgType,
+	callbackPayload, err := message.EncodeKVPairs(map[string]string{
+		"id":         event.ID,
+		"originHash": event.OriginHash,
+		"code":       "712000",
+		"msg":        "",
+		"msgType":    fmt.Sprintf("%d", event.MsgType),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode file callback payload: %w", err)
 	}
-	callbackPayload, _ := json.Marshal(callbackInfo)
 	msg.WithCallback("Callback", callbackPayload)
 
 	msg.WithMetadata("fileId", event.ID)

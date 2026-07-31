@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
-	"chainmaker.org/chainmaker/common/v2/json"
 	chainCli "github.com/jackz-jones/blockchain-interactive-service/chaininteractive"
 	chainPb "github.com/jackz-jones/blockchain-interactive-service/pb"
 	commonEvent "github.com/jackz-jones/common/event"
@@ -27,8 +27,9 @@ type handlerAdapter struct {
 	// 当前链下的合约配置
 	contractConfs []*chainPb.ContractDesc
 
-	// 跨链的目标链配置
-	crossTargetChainConf *chainCli.ChainAndContractName
+	// 跨链的目标链配置（支持多目标广播）
+	// key 用 chainName 索引，便于路由命中后按目标链查找目标合约信息
+	crossTargetChainConfs []*chainCli.ChainAndContractName
 }
 
 // eventName 实现 handler 接口
@@ -71,7 +72,8 @@ func (h *handlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) error {
 	if requiredLen > 0 && parsedEvent.EventDataItems != nil && len(parsedEvent.EventDataItems) != requiredLen {
 		h.logger.Errorf("[%s] %s: expected %d items, got %d", h.eventName(),
 			code.ErrMsgInvalidEventInfoData, requiredLen, len(parsedEvent.EventDataItems))
-		return fmt.Errorf(" %s", code.ErrMsgInvalidEventInfoData)
+		return fmt.Errorf("%s: expected %d items, got %d",
+			code.ErrMsgInvalidEventInfoData, requiredLen, len(parsedEvent.EventDataItems))
 	}
 
 	// 6. 构建跨链消息
@@ -87,48 +89,124 @@ func (h *handlerAdapter) handleEvent(event commonEvent.TradeGuardEvent) error {
 		return nil
 	}
 
-	// 通过路由引擎填充目标链信息
+	// 7. 通过路由引擎解析目标链列表：
+	//    - 路由命中：按每个目标广播执行
+	//    - 路由未命中且 msg.TargetChain 已由业务方填充：仍执行单目标
+	//    - 都没有则按未命中策略处理
+	targets := h.resolveTargets(msg)
+	if len(targets) == 0 {
+		h.logger.Errorf("[%s] no route target resolved for message %s", h.eventName(), msg.MessageID)
+		return nil
+	}
+
+	// 8. 执行跨链交易（支持多目标 fan-out）
+	return h.executeMessageToTargets(msg, targets)
+}
+
+// resolveTargets 依据路由引擎与消息自身信息解析目标链列表。
+// 保留旧行为：msg.TargetChain 已由业务方显式指定时，作为兜底目标。
+func (h *handlerAdapter) resolveTargets(msg *message.CrossChainMessage) []message.RouteTarget {
 	if h.svcCtx.Router != nil {
 		if router, ok := h.svcCtx.Router.(*message.MessageRouter); ok {
-			targets, routeErr := router.Route(msg)
+			routeTargets, routeErr := router.Route(msg)
 			if routeErr != nil {
 				h.logger.Errorf("[%s] route message error: %v", h.eventName(), routeErr)
-				return routeErr
+				return nil
 			}
-			if len(targets) > 0 {
-				msg.TargetChain = targets[0].TargetChain
-				msg.TargetContract = targets[0].TargetContract
+			if len(routeTargets) > 0 {
+				return routeTargets
 			}
 		}
 	}
 
-	// 8. 执行跨链交易
-	return h.executeMessage(msg)
+	// 兜底：路由未命中但 msg.TargetChain 已有值 → 单目标执行
+	if msg.TargetChain != "" {
+		return []message.RouteTarget{
+			{
+				TargetChain:    msg.TargetChain,
+				TargetContract: msg.TargetContract,
+				Method:         msg.Method,
+			},
+		}
+	}
+	return nil
+}
+
+// executeMessageToTargets 对每个目标链独立执行跨链消息。
+// 单目标时直接同步执行；多目标时并发 fan-out 并收集错误。
+func (h *handlerAdapter) executeMessageToTargets(
+	msg *message.CrossChainMessage,
+	targets []message.RouteTarget,
+) error {
+	if len(targets) == 1 {
+		clone := *msg
+		clone.TargetChain = targets[0].TargetChain
+		clone.TargetContract = targets[0].TargetContract
+		if targets[0].Method != "" {
+			clone.Method = targets[0].Method
+		}
+		return h.executeMessage(&clone)
+	}
+
+	var (
+		wg   sync.WaitGroup
+		mu   sync.Mutex
+		errs []error
+	)
+	for _, t := range targets {
+		target := t
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			clone := *msg
+			clone.TargetChain = target.TargetChain
+			clone.TargetContract = target.TargetContract
+			if target.Method != "" {
+				clone.Method = target.Method
+			}
+			if err := h.executeMessage(&clone); err != nil {
+				h.logger.Errorf("[%s] execute message %s to target %s failed: %v",
+					h.eventName(), msg.MessageID, target.TargetChain, err)
+				mu.Lock()
+				errs = append(errs, fmt.Errorf("target %s: %w", target.TargetChain, err))
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+	return nil
 }
 
 // executeMessage 执行跨链消息
 func (h *handlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
-	// 从 Payload 反序列化出 kvs
-	var kvs []*chainPb.KeyValuePair
-	if err := json.Unmarshal(msg.Payload, &kvs); err != nil {
-		return fmt.Errorf("unmarshal payload to kvs: %w", err)
+	// 通过 codec 抽象将 Payload 解码为目标链所需的 KV 列表。
+	// 业务方可在 GenericEventHandler 上实现 PayloadCodecProvider 提供自定义 codec，
+	// 未实现时使用默认 KVPairsCodec（Payload 必须是 []*KeyValuePair 的 JSON）。
+	codec := message.ResolvePayloadCodec(h.processor)
+	kvs, err := codec.Decode(msg.Payload)
+	if err != nil {
+		h.logger.Errorf("[%s] decode payload error: %v", h.eventName(), err)
+		return fmt.Errorf("decode payload for event %q: %w", h.eventName(), err)
 	}
 
 	// 获取目标合约名称
 	targetContractName := msg.TargetContract
 	if targetContractName == "" {
-		targetContractName = h.GetTargetContractName(msg.SourceContract)
+		targetContractName = h.GetTargetContractName(msg.TargetChain, msg.SourceContract)
 	}
 
-	// 创建执行器
-	executor := message.CreateReliableExecutor(h.svcCtx, h.logger, msg.MessageID)
+	// 创建执行器（把 msg 传入，让执行器可以同步更新其 Status/TxID/ErrorMessage）
+	executor := message.CreateReliableExecutor(h.svcCtx, h.logger, msg)
 
 	if msg.HasCallback() {
-		// 带回调的执行
-		var callbackKvs []*chainPb.KeyValuePair
-		if err := json.Unmarshal(msg.CallbackPayload, &callbackKvs); err != nil {
-			h.logger.Errorf("[%s] unmarshal callback payload error: %v", h.eventName(), err)
-			return fmt.Errorf("unmarshal callback payload: %w", err)
+		// 回调 payload 使用同一份 codec 解码，保持一致性
+		callbackKvs, err := codec.Decode(msg.CallbackPayload)
+		if err != nil {
+			h.logger.Errorf("[%s] decode callback payload error: %v", h.eventName(), err)
+			return fmt.Errorf("decode callback payload for event %q: %w", h.eventName(), err)
 		}
 
 		callbackMethod := msg.CallbackMethod
@@ -136,7 +214,7 @@ func (h *handlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
 			return callbackKvs, nil
 		}
 
-		_, err := executor.ExecuteWithCallback(
+		_, err = executor.ExecuteWithCallback(
 			h.ctx,
 			msg.TargetChain,
 			targetContractName,
@@ -149,7 +227,7 @@ func (h *handlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
 	}
 
 	// 不带回调的执行
-	_, err := executor.Execute(
+	_, err = executor.Execute(
 		h.ctx,
 		msg.TargetChain,
 		targetContractName,
@@ -159,11 +237,32 @@ func (h *handlerAdapter) executeMessage(msg *message.CrossChainMessage) error {
 	return err
 }
 
-// GetTargetContractName 根据合约类型获取目标链合约名称
-func (h *handlerAdapter) GetTargetContractName(contractType string) string {
-	for _, contractConf := range h.crossTargetChainConf.ContractDescs {
-		if contractConf.ContractType.String() == contractType {
-			return contractConf.ContractName
+// GetTargetContractName 根据目标链名称和源合约类型查找目标链上的合约名称。
+// targetChain 为空或未匹配时，按顺序遍历所有已知目标链配置查找同类型合约（向后兼容）。
+func (h *handlerAdapter) GetTargetContractName(targetChain, contractType string) string {
+	// 优先按目标链定位
+	if targetChain != "" {
+		for _, chainConf := range h.crossTargetChainConfs {
+			if chainConf == nil || chainConf.ChainName != targetChain {
+				continue
+			}
+			for _, contractConf := range chainConf.ContractDescs {
+				if contractConf.ContractType.String() == contractType {
+					return contractConf.ContractName
+				}
+			}
+		}
+	}
+
+	// 兜底：任意目标链上的同类型合约
+	for _, chainConf := range h.crossTargetChainConfs {
+		if chainConf == nil {
+			continue
+		}
+		for _, contractConf := range chainConf.ContractDescs {
+			if contractConf.ContractType.String() == contractType {
+				return contractConf.ContractName
+			}
 		}
 	}
 	return ""

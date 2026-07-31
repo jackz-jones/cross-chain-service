@@ -56,3 +56,40 @@ func (a *RedisNodeAdapter) HGetAll(ctx context.Context, key string) (map[string]
 func (a *RedisNodeAdapter) Expire(ctx context.Context, key string, ttl time.Duration) error {
 	return a.node.Expire(ctx, key, ttl).Err()
 }
+
+// Set 实现带 TTL 的 SET（一次 RTT，等价 SETEX）
+// ttl <= 0 时表示不设置过期时间
+func (a *RedisNodeAdapter) Set(
+	ctx context.Context, key string, value interface{}, ttl time.Duration,
+) error {
+	return a.node.Set(ctx, key, value, ttl).Err()
+}
+
+// Get 获取字符串值；key 不存在时返回 ("", nil)
+func (a *RedisNodeAdapter) Get(ctx context.Context, key string) (string, error) {
+	result, err := a.node.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	return result, err
+}
+
+// Del 删除单个 key
+func (a *RedisNodeAdapter) Del(ctx context.Context, key string) error {
+	return a.node.Del(ctx, key).Err()
+}
+
+// SAdd 将 member 加入到 key 对应的集合中
+func (a *RedisNodeAdapter) SAdd(ctx context.Context, key string, member interface{}) error {
+	return a.node.SAdd(ctx, key, member).Err()
+}
+
+// SMembers 返回集合中所有成员
+func (a *RedisNodeAdapter) SMembers(ctx context.Context, key string) ([]string, error) {
+	return a.node.SMembers(ctx, key).Result()
+}
+
+// SRem 从集合中移除 member
+func (a *RedisNodeAdapter) SRem(ctx context.Context, key string, member interface{}) error {
+	return a.node.SRem(ctx, key, member).Err()
+}

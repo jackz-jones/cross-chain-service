@@ -21,15 +21,6 @@ import (
 
 // ==================== 业务数据类型定义 ====================
 
-// NFTInfo NFT 信息（对应 nft-contract-go/types.NFTInfo）
-type NFTInfo struct {
-	ID         string `json:"id"`
-	Owner      string `json:"owner"`
-	Holder     string `json:"holder"`
-	OriginHash string `json:"originHash"`
-	Data       string `json:"data"`
-}
-
 // CrossChainMintEvent 跨链铸造事件数据
 type CrossChainMintEvent struct {
 	TokenID    string `json:"tokenId"`
@@ -92,17 +83,18 @@ func (h *CrossChainMintHandler) BuildMessage(
 		return nil, fmt.Errorf("insufficient event data items: got %d, need 5", len(parsedEvent.EventDataItems))
 	}
 
-	// 构建 NFT 信息作为 payload
-	nftInfo := &NFTInfo{
-		ID:         mintEvent.TokenID,
-		Owner:      mintEvent.Owner,
-		Holder:     mintEvent.Holder,
-		OriginHash: mintEvent.OriginHash,
-		Data:       mintEvent.Data,
-	}
-	payload, err := json.Marshal(nftInfo)
+	// 构建 KeyValuePair 形式的 payload：这是默认 KVPairsCodec 期望的格式，
+	// 框架会将其直接透传给目标链合约调用。
+	// 如需保持业务结构体形态的 payload，可在 Handler 上实现 message.PayloadCodecProvider。
+	payload, err := message.EncodeKVPairs(map[string]string{
+		"id":         mintEvent.TokenID,
+		"owner":      mintEvent.Owner,
+		"holder":     mintEvent.Holder,
+		"originHash": mintEvent.OriginHash,
+		"data":       mintEvent.Data,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal NFT info: %w", err)
+		return nil, fmt.Errorf("failed to encode NFT payload: %w", err)
 	}
 
 	// 创建跨链消息
@@ -161,9 +153,15 @@ func (h *CrossChainTransferHandler) BuildMessage(
 		return nil, fmt.Errorf("insufficient event data items: got %d, need 4", len(parsedEvent.EventDataItems))
 	}
 
-	payload, err := json.Marshal(transferEvent)
+	// 使用默认 KVPairsCodec 约定：将业务字段编码为 KeyValuePair 列表 JSON。
+	payload, err := message.EncodeKVPairs(map[string]string{
+		"tokenId":    transferEvent.TokenID,
+		"from":       transferEvent.From,
+		"to":         transferEvent.To,
+		"originHash": transferEvent.OriginHash,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal transfer event: %w", err)
+		return nil, fmt.Errorf("failed to encode transfer payload: %w", err)
 	}
 
 	msg := message.NewCrossChainMessage(
